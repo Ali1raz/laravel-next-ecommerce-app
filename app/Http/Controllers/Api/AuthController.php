@@ -32,10 +32,31 @@ class AuthController extends Controller
         ], 201);
     }
 
-    public function login()
+    public function login(Request $req)
     {
-        return response()->json([
-            'message' => 'Login',
+        $req->validate([
+            'email' => 'required|string|email',
+            'password' => 'required|string|min:8',
         ]);
+
+        $user = \App\Models\User::where('email', $req->email)->first();
+
+        if (!$user || !Hash::check($req->password, $user->password)) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
+        }
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Login successful',
+            'user' => $user,
+            'token' => $token,
+        ]);
+    }
+
+    public function logout(Request $request)
+    {
+        $request->user()->tokens()->delete();
+        return response()->json(['message' => 'Logged out']);
     }
 }

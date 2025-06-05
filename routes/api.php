@@ -1,27 +1,27 @@
 <?php
 
-use App\Http\Controllers\Api\AuthController;
-use GuzzleHttp\Psr7\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AuthController;
 
-Route::get("ping", function () {
-    return response()->json(["message" => "pong"]);
-});
+// 🔁 Health check endpoint
+Route::get('/ping', fn() => response()->json(['message' => 'pong']));
 
-Route::post('register', [AuthController::class, 'register']);
-Route::post('login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login',    [AuthController::class, 'login']);
 
+Route::middleware(['auth:sanctum'])->group(function () {
 
-Route::middleware('api', 'auth:sanctum')->group(function () {
-    Route::post('logout', [AuthController::class, 'logout']);
+    Route::post('/logout', [AuthController::class, 'logout']);
 
-    Route::middleware('role:admin')->get('admin/dashboard', function () {
-        return 'Hello Admin';
+    Route::prefix('admin')->middleware('role:admin')->group(function () {
+        Route::get('/dashboard', fn() => response()->json(['message' => 'Hello Admin']));
     });
-    Route::middleware('role:seller')->get('seller/dashboard', function () {
-        return 'Hello seller';
+
+    Route::prefix('seller')->middleware('role:seller')->group(function () {
+        Route::get('/dashboard', fn() => response()->json(['message' => 'Hello Seller']));
     });
-    Route::middleware('role:buyer')->get('buyer/dashboard', function () {
-        return 'Hello buyer';
+
+    Route::prefix('buyer')->middleware('role:buyer')->group(function () {
+        Route::get('/dashboard', fn() => response()->json(['message' => 'Hello Buyer']));
     });
 });

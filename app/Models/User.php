@@ -57,9 +57,4 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $this->notify(new ResetPasswordNotification($token));
     }
-
-    public function hasRole(string $role): bool
-    {
-        return $this->role === $role;
-    }
 }

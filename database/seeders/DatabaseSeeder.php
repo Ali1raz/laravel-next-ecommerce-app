@@ -14,6 +14,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // First create roles
+        $this->call(RolePermissionSeeder::class);
+
+        // Then create admin user
         User::where('email', 'admin@example.com')->delete();
 
         User::create([

@@ -1,174 +1,325 @@
-# Shopping App API
+# Shopping App API Documentation
 
-## Authentication API
+## Base URL
+
+```
+http://your-domain.com/api
+```
+
+## Authentication
+
+All API endpoints (except public ones) require authentication using Laravel Sanctum tokens.
 
 ### Register
 
 ```http
-POST /api/register
+POST /register
 Content-Type: application/json
 
 {
     "name": "John Doe",
-    "email": "john@example.com",
-    "password": "password123",
-    "password_confirmation": "password123"
-}
-```
-
-Response: `201 Created`
-
-```json
-{
-    "message": "Registration successful. Please check your email for verification code.",
-    "email": "john@example.com"
+    "email": "user@example.com",
+    "password": "password",
+    "password_confirmation": "password"
 }
 ```
 
 ### Verify Email
 
 ```http
-POST /api/verify-code
+POST /verify-code
 Content-Type: application/json
 
 {
-    "email": "john@example.com",
+    "email": "user@example.com",
     "code": "123456"
-}
-```
-
-Response: `200 OK`
-
-```json
-{
-    "message": "Email verified successfully"
 }
 ```
 
 ### Resend Verification Code
 
 ```http
-POST /api/resend-verification-code
+POST /resend-verification-code
 Content-Type: application/json
 
 {
-    "email": "john@example.com"
-}
-```
-
-Response: `200 OK`
-
-```json
-{
-    "message": "New verification code sent to your email"
+    "email": "user@example.com"
 }
 ```
 
 ### Login
 
 ```http
-POST /api/login
+POST /login
 Content-Type: application/json
 
 {
-    "email": "john@example.com",
-    "password": "password123"
-}
-```
-
-Response: `200 OK`
-
-```json
-{
-    "message": "Login successful",
-    "user": {
-        "id": 1,
-        "name": "John Doe",
-        "email": "john@example.com",
-        "role": "buyer"
-    },
-    "token": "access_token_here"
+    "email": "user@example.com",
+    "password": "password"
 }
 ```
 
 ### Logout
 
 ```http
-POST /api/logout
+POST /logout
 Authorization: Bearer {token}
 ```
 
-Response: `200 OK`
+### Forgot Password
 
-```json
+```http
+POST /forgot-password
+Content-Type: application/json
+
 {
-    "message": "Logged out"
+    "email": "user@example.com"
 }
 ```
 
-## Development Setup
+### Reset Password
 
-1. Clone the repository
-2. Install dependencies:
+```http
+POST /reset-password
+Content-Type: application/json
 
-```bash
-composer install
+{
+    "email": "user@example.com",
+    "token": "reset_token",
+    "password": "new_password",
+    "password_confirmation": "new_password"
+}
 ```
 
-3. Copy `.env.example` to `.env` and configure:
+## Admin Endpoints
 
-```bash
-cp .env.example .env
+### Dashboard
+
+```http
+GET /admin/dashboard
+Authorization: Bearer {token}
 ```
 
-4. Set up database:
+### Role Management
 
-```bash
-php artisan migrate
+#### List Roles
+
+```http
+GET /admin/roles
+Authorization: Bearer {token}
 ```
 
-5. Email Setup (Development):
+#### Create Role
 
--   Sign up for a free Mailtrap account at https://mailtrap.io
--   Go to Email Testing → Inboxes → SMTP Settings
--   Update your `.env` file with Mailtrap credentials:
+```http
+POST /admin/roles
+Authorization: Bearer {token}
+Content-Type: application/json
 
-```env
-MAIL_MAILER=smtp
-MAIL_HOST=sandbox.smtp.mailtrap.io
-MAIL_PORT=2525
-MAIL_USERNAME=your_mailtrap_username
-MAIL_PASSWORD=your_mailtrap_password
-MAIL_ENCRYPTION=tls
-MAIL_FROM_ADDRESS="noreply@yourdomain.com"
-MAIL_FROM_NAME="${APP_NAME}"
+{
+    "name": "editor"
+}
 ```
 
-    - All emails will be caught by Mailtrap and can be viewed in your Mailtrap inbox
+#### Get Role
 
-6. Start the server:
-
-```bash
-php artisan serve
+```http
+GET /admin/roles/{id}
+Authorization: Bearer {token}
 ```
 
-7. Test API endpoints using Postman or curl:
+#### Update Role
 
-```bash
-# Register
-curl -X POST http://localhost:8000/api/register \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Test User","email":"test@example.com","password":"password123","password_confirmation":"password123"}'
+```http
+PUT /admin/roles/{id}
+Authorization: Bearer {token}
+Content-Type: application/json
 
-# Check verification code in Mailtrap inbox
-
-# Verify email
-curl -X POST http://localhost:8000/api/verify-code \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","code":"123456"}'
-
-# Login
-curl -X POST http://localhost:8000/api/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"password123"}'
+{
+    "name": "senior-editor"
+}
 ```
+
+#### Delete Role
+
+```http
+DELETE /admin/roles/{id}
+Authorization: Bearer {token}
+```
+
+### Permission Management
+
+#### List Permissions
+
+```http
+GET /admin/permissions
+Authorization: Bearer {token}
+```
+
+#### Create Permission
+
+```http
+POST /admin/permissions
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "name": "edit-posts"
+}
+```
+
+#### Get Permission
+
+```http
+GET /admin/permissions/{id}
+Authorization: Bearer {token}
+```
+
+#### Update Permission
+
+```http
+PUT /admin/permissions/{id}
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "name": "manage-posts"
+}
+```
+
+#### Delete Permission
+
+```http
+DELETE /admin/permissions/{id}
+Authorization: Bearer {token}
+```
+
+#### Assign Permissions to Role
+
+```http
+POST /admin/permissions/assign-to-role
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "role_id": 1,
+    "permission_ids": [1, 2, 3]
+}
+```
+
+#### Remove Permissions from Role
+
+```http
+POST /admin/permissions/remove-from-role
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "role_id": 1,
+    "permission_ids": [1, 2]
+}
+```
+
+### User Role Management
+
+#### Assign Role to User
+
+```http
+POST /admin/users/assign-role
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "user_id": 1,
+    "role_id": 1
+}
+```
+
+#### Remove Role from User
+
+```http
+POST /admin/users/remove-role
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "user_id": 1
+}
+```
+
+#### Get User's Role
+
+```http
+GET /admin/users/{userId}/role
+Authorization: Bearer {token}
+```
+
+## Seller Endpoints
+
+### Dashboard
+
+```http
+GET /seller/dashboard
+Authorization: Bearer {token}
+```
+
+## Buyer Endpoints
+
+### Dashboard
+
+```http
+GET /buyer/dashboard
+Authorization: Bearer {token}
+```
+
+## Response Format
+
+All API responses follow this format:
+
+```json
+{
+    "status": "success|error",
+    "message": "Optional message",
+    "data": {
+        // Response data
+    }
+}
+```
+
+## Error Responses
+
+```json
+{
+    "status": "error",
+    "message": "Error message",
+    "errors": {
+        // Validation errors
+    }
+}
+```
+
+## Status Codes
+
+-   200: Success
+-   201: Created
+-   400: Bad Request
+-   401: Unauthorized
+-   403: Forbidden
+-   404: Not Found
+-   422: Validation Error
+-   500: Server Error
+
+## Rate Limiting
+
+API requests are limited to 60 requests per minute per IP address.
+
+## CORS
+
+The API supports CORS and can be accessed from any origin.
+
+## Security
+
+-   All endpoints (except public ones) require authentication
+-   Tokens expire after 30 days
+-   Passwords are hashed using bcrypt
+-   CSRF protection is disabled for API routes

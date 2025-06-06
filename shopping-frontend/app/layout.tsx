@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
+import { Lato } from "next/font/google";
 import "./globals.css";
+
+const lato = Lato({
+  weight: ["100", "300", "400", "700", "900"],
+  subsets: ["latin"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Shopping App",
@@ -13,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className=" antialiased">{children}</body>
+      <body className={`antialiased ${lato.className}`}>{children}</body>
     </html>
   );
 }

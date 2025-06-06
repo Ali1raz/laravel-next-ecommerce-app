@@ -256,6 +256,161 @@ GET /admin/users/{userId}/role
 Authorization: Bearer {token}
 ```
 
+### User Management
+
+#### List Users
+
+```http
+GET /admin/users
+Authorization: Bearer {token}
+```
+
+Response:
+
+```json
+{
+    "status": "success",
+    "data": {
+        "current_page": 1,
+        "data": [
+            {
+                "id": 1,
+                "name": "John Doe",
+                "email": "john@example.com",
+                "email_verified_at": "2024-03-20T10:00:00.000000Z",
+                "roles": [
+                    {
+                        "id": 1,
+                        "name": "buyer"
+                    }
+                ]
+            }
+        ],
+        "per_page": 10,
+        "total": 1
+    }
+}
+```
+
+#### Create User
+
+```http
+POST /admin/users
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "name": "Jane Doe",
+    "email": "jane@example.com",
+    "password": "password",
+    "password_confirmation": "password",
+    "role": "buyer"
+}
+```
+
+Response:
+
+```json
+{
+    "status": "success",
+    "message": "User created successfully",
+    "data": {
+        "id": 2,
+        "name": "Jane Doe",
+        "email": "jane@example.com",
+        "email_verified_at": "2024-03-20T10:00:00.000000Z",
+        "roles": [
+            {
+                "id": 1,
+                "name": "buyer"
+            }
+        ]
+    }
+}
+```
+
+#### Get User
+
+```http
+GET /admin/users/{id}
+Authorization: Bearer {token}
+```
+
+Response:
+
+```json
+{
+    "status": "success",
+    "data": {
+        "id": 1,
+        "name": "John Doe",
+        "email": "john@example.com",
+        "email_verified_at": "2024-03-20T10:00:00.000000Z",
+        "roles": [
+            {
+                "id": 1,
+                "name": "buyer"
+            }
+        ]
+    }
+}
+```
+
+#### Update User
+
+```http
+PUT /admin/users/{id}
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "name": "John Updated",
+    "email": "john.updated@example.com",
+    "password": "new_password",
+    "password_confirmation": "new_password",
+    "role": "seller"
+}
+```
+
+Response:
+
+```json
+{
+    "status": "success",
+    "message": "User updated successfully",
+    "data": {
+        "id": 1,
+        "name": "John Updated",
+        "email": "john.updated@example.com",
+        "email_verified_at": "2024-03-20T10:00:00.000000Z",
+        "roles": [
+            {
+                "id": 2,
+                "name": "seller"
+            }
+        ]
+    }
+}
+```
+
+#### Delete User
+
+```http
+DELETE /admin/users/{id}
+Authorization: Bearer {token}
+```
+
+Response:
+
+```json
+{
+    "status": "success",
+    "message": "User deleted successfully"
+}
+```
+
+Note: Admins cannot delete their own account. Attempting to do so will result in a 403 Forbidden response.
+
 ## Seller Endpoints
 
 ### Dashboard

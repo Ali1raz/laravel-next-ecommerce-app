@@ -33,9 +33,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('permissions/remove-from-role', [PermissionController::class, 'removeFromRole']);
 
         // User role management
-        Route::post('users/assign-roles', [UserRoleController::class, 'assignRoles']);
-        Route::post('users/remove-roles', [UserRoleController::class, 'removeRoles']);
-        Route::get('users/{userId}/roles', [UserRoleController::class, 'getUserRoles']);
+        Route::post('users/assign-role', [UserRoleController::class, 'assignRole']);
+        Route::post('users/remove-role', [UserRoleController::class, 'removeRole']);
+        Route::get('users/{userId}/role', [UserRoleController::class, 'getUserRole']);
     });
 
     Route::prefix('seller')->middleware('role:seller')->group(function () {

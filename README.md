@@ -49,6 +49,8 @@ Content-Type: application/json
 
 ### Login
 
+(must verify email before login)
+
 ```http
 POST /login
 Content-Type: application/json

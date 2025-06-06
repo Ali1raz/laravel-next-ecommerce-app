@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -23,12 +24,12 @@ class AuthController extends Controller
             'password' => Hash::make($req->password),
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        event(new Registered($user));
+
+        // $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'message' => 'User registered successfully',
-            'user' => $user,
-            'token' => $token,
+            'message' => 'Email verification link sent to your email address.',
         ], 201);
     }
 
@@ -45,6 +46,13 @@ class AuthController extends Controller
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
+        if (!$user->hasVerifiedEmail()) {
+            return response()->json([
+                'message' => 'Please verify your email address first.',
+                'email' => $user->email
+            ], 403);
+        }
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -58,5 +66,28 @@ class AuthController extends Controller
     {
         $request->user()->tokens()->delete();
         return response()->json(['message' => 'Logged out']);
+    }
+
+    public function verifyEmail(Request $request, $id, $hash)
+    {
+        $user = \App\Models\User::findOrFail($id);
+
+        if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+            return response()->json(['message' => 'Invalid verification link'], 400);
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return response()->json(['message' => 'Email already verified'], 200);
+        }
+
+        $user->markEmailAsVerified();
+
+        return response()->json(['message' => 'Email verified successfully']);
+    }
+
+    public function resendVerificationEmail(Request $request)
+    {
+        $request->user()->sendEmailVerificationNotification();
+        return response()->json(['message' => 'Verification link sent']);
     }
 }

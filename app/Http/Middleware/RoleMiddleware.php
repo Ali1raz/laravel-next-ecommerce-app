@@ -15,7 +15,7 @@ class RoleMiddleware
      */
     public function handle(Request $request, Closure $next, $role): Response
     {
-        if ($request->user()->role !== $role) {
+        if (!$request->user()->hasRole($role)) {
             return response()->json(['message' => 'Forbidden'], 403);
         }
 

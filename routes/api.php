@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\Admin\RoleController;
+use App\Http\Controllers\Api\Admin\PermissionController;
+use App\Http\Controllers\Api\Admin\UserRoleController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PasswordResetController;
@@ -21,7 +23,19 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::prefix('admin')->middleware('role:admin')->group(function () {
         Route::get('/dashboard', fn() => response()->json(['message' => 'Hello Admin']));
+
+        // Role management
         Route::apiResource('roles', RoleController::class);
+
+        // Permission management
+        Route::apiResource('permissions', PermissionController::class);
+        Route::post('permissions/assign-to-role', [PermissionController::class, 'assignToRole']);
+        Route::post('permissions/remove-from-role', [PermissionController::class, 'removeFromRole']);
+
+        // User role management
+        Route::post('users/assign-roles', [UserRoleController::class, 'assignRoles']);
+        Route::post('users/remove-roles', [UserRoleController::class, 'removeRoles']);
+        Route::get('users/{userId}/roles', [UserRoleController::class, 'getUserRoles']);
     });
 
     Route::prefix('seller')->middleware('role:seller')->group(function () {

@@ -6,17 +6,13 @@ use App\Http\Controllers\Api\AuthController;
 // 🔁 Health check endpoint
 Route::get('/ping', fn() => response()->json(['message' => 'pong']));
 
+// Authentication routes
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login',    [AuthController::class, 'login']);
-
-// Email verification routes
-Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
-    ->name('verification.verify');
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/verify-code', [AuthController::class, 'verifyCode']);
+Route::post('/resend-verification-code', [AuthController::class, 'resendVerificationCode']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::post('/email/verification-notification', [AuthController::class, 'resendVerificationEmail'])
-        ->name('verification.send');
-
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::prefix('admin')->middleware('role:admin')->group(function () {

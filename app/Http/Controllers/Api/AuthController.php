@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -17,20 +16,86 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ]);
 
+        // Generate verification code
+        $verificationCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $expiresAt = now()->addHours(24);
+
         $user = \App\Models\User::create([
             'name' => $req->name,
             'email' => $req->email,
             'role' => 'buyer',
             'password' => Hash::make($req->password),
+            'verification_code' => $verificationCode,
+            'verification_code_expires_at' => $expiresAt,
         ]);
 
-        event(new Registered($user));
-
-        // $token = $user->createToken('auth_token')->plainTextToken;
+        // Send verification email
+        \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\VerificationCodeMail($verificationCode));
 
         return response()->json([
-            'message' => 'Email verification link sent to your email address.',
+            'message' => 'Registration successful. Please check your email for verification code.',
+            'email' => $user->email
         ], 201);
+    }
+
+    public function verifyCode(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'code' => 'required|string|size:6'
+        ]);
+
+        $user = \App\Models\User::where('email', $request->email)
+            ->where('verification_code', $request->code)
+            ->where('verification_code_expires_at', '>', now())
+            ->first();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Invalid or expired verification code'
+            ], 400);
+        }
+
+        $user->markEmailAsVerified();
+        $user->verification_code = null;
+        $user->verification_code_expires_at = null;
+        $user->save();
+
+        return response()->json([
+            'message' => 'Email verified successfully'
+        ]);
+    }
+
+    public function resendVerificationCode(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email'
+        ]);
+
+        $user = \App\Models\User::where('email', $request->email)
+            ->whereNull('email_verified_at')
+            ->first();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'User not found or already verified'
+            ], 404);
+        }
+
+        // Generate new verification code
+        $verificationCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $expiresAt = now()->addHours(24);
+
+        $user->verification_code = $verificationCode;
+        $user->verification_code_expires_at = $expiresAt;
+        $user->save();
+
+        // Send new verification email
+        \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\VerificationCodeMail($verificationCode));
+
+        return response()->json([
+            'message' => 'New verification code sent to your email'
+        ]);
     }
 
     public function login(Request $req)
@@ -66,28 +131,5 @@ class AuthController extends Controller
     {
         $request->user()->tokens()->delete();
         return response()->json(['message' => 'Logged out']);
-    }
-
-    public function verifyEmail(Request $request, $id, $hash)
-    {
-        $user = \App\Models\User::findOrFail($id);
-
-        if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
-            return response()->json(['message' => 'Invalid verification link'], 400);
-        }
-
-        if ($user->hasVerifiedEmail()) {
-            return response()->json(['message' => 'Email already verified'], 200);
-        }
-
-        $user->markEmailAsVerified();
-
-        return response()->json(['message' => 'Email verified successfully']);
-    }
-
-    public function resendVerificationEmail(Request $request)
-    {
-        $request->user()->sendEmailVerificationNotification();
-        return response()->json(['message' => 'Verification link sent']);
     }
 }

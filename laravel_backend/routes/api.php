@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\Admin\RoleController;
 use App\Http\Controllers\Api\Admin\PermissionController;
 use App\Http\Controllers\Api\Admin\UserRoleController;
+use App\Http\Controllers\Api\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PasswordResetController;
@@ -36,6 +37,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('users/assign-role', [UserRoleController::class, 'assignRole']);
         Route::post('users/remove-role', [UserRoleController::class, 'removeRole']);
         Route::get('users/{userId}/role', [UserRoleController::class, 'getUserRole']);
+
+        // User management
+        Route::apiResource('users', UserController::class);
     });
 
     Route::prefix('seller')->middleware('role:seller')->group(function () {

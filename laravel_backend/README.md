@@ -199,6 +199,91 @@ Content-Type: application/json
 }
 ```
 
+### Profile Management
+
+#### Get Profile
+
+```http
+GET /profile
+Authorization: Bearer {token}
+```
+
+Response (200 OK):
+
+```json
+{
+    "status": "success",
+    "data": {
+        "id": 1,
+        "name": "John Doe",
+        "email": "john@example.com",
+        "email_verified_at": "2024-03-20T10:00:00.000000Z",
+        "roles": [
+            {
+                "id": 1,
+                "name": "buyer",
+                "permissions": [
+                    {
+                        "id": 1,
+                        "name": "view-products"
+                    }
+                ]
+            }
+        ]
+    }
+}
+```
+
+#### Update Profile
+
+```http
+PUT /profile
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "name": "John Updated",
+    "email": "john.updated@example.com",
+    "current_password": "current_password",
+    "password": "new_password",
+    "password_confirmation": "new_password"
+}
+```
+
+Response (200 OK):
+
+```json
+{
+    "status": "success",
+    "message": "Profile updated successfully",
+    "data": {
+        "id": 1,
+        "name": "John Updated",
+        "email": "john.updated@example.com",
+        "email_verified_at": "2024-03-20T10:00:00.000000Z",
+        "roles": [
+            {
+                "id": 1,
+                "name": "buyer",
+                "permissions": [
+                    {
+                        "id": 1,
+                        "name": "view-products"
+                    }
+                ]
+            }
+        ]
+    }
+}
+```
+
+Validation Rules:
+
+-   name: required, string, max 255 characters
+-   email: required, valid email, max 255 characters, unique (except for current user)
+-   current_password: required when changing password
+-   password: optional, string, min 8 characters, must be confirmed if provided
+
 ## Admin Endpoints
 
 All admin endpoints require the 'admin' role and authentication token.

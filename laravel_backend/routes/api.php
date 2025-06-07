@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\Admin\DashboardController;
+use App\Http\Controllers\Api\ProfileController;
 
 // 🔁 Health check endpoint
 Route::get('/ping', fn() => response()->json(['message' => 'pong']));
@@ -22,6 +23,10 @@ Route::post('/reset-password', [PasswordResetController::class, 'reset']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    // Profile routes
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::put('/profile', [ProfileController::class, 'update']);
 
     Route::prefix('admin')->middleware('role:admin')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index']);

@@ -20,9 +20,29 @@ class ProfileController extends Controller
         try {
             $user = User::with(['roles.permissions'])->find(Auth::id());
 
+            // Transform the response to include only necessary data
+            $transformedUser = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'email_verified_at' => $user->email_verified_at,
+                'roles' => $user->roles->map(function ($role) {
+                    return [
+                        'id' => $role->id,
+                        'name' => $role->name,
+                        'permissions' => $role->permissions->map(function ($permission) {
+                            return [
+                                'id' => $permission->id,
+                                'name' => $permission->name
+                            ];
+                        })
+                    ];
+                })
+            ];
+
             return response()->json([
                 'status' => 'success',
-                'data' => $user
+                'data' => $transformedUser
             ]);
         } catch (\Exception $e) {
             return response()->json([

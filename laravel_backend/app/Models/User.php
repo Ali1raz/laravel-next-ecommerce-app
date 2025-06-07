@@ -28,6 +28,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'verification_code',
         'verification_code_expires_at',
+        'email_verified_at'
     ];
 
     /**
@@ -38,6 +39,8 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $hidden = [
         'password',
         'remember_token',
+        'verification_code',
+        'verification_code_expires_at'
     ];
 
     /**
@@ -49,6 +52,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'verification_code_expires_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
@@ -56,5 +60,20 @@ class User extends Authenticatable implements MustVerifyEmail
     public function sendPasswordResetNotification($token)
     {
         $this->notify(new ResetPasswordNotification($token));
+    }
+
+    public function products()
+    {
+        return $this->hasMany(Product::class, 'seller_id');
+    }
+
+    public function cart()
+    {
+        return $this->hasOne(Cart::class);
+    }
+
+    public function bills()
+    {
+        return $this->hasMany(Bill::class);
     }
 }

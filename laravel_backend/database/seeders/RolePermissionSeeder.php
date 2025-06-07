@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class RolePermissionSeeder extends Seeder
 {
@@ -14,8 +15,51 @@ class RolePermissionSeeder extends Seeder
     public function run(): void
     {
         // Create roles
-        Role::create(['name' => 'admin']);
-        Role::create(['name' => 'seller']);
-        Role::create(['name' => 'buyer']);
+        $adminRole = Role::create(['name' => 'admin']);
+        $sellerRole = Role::create(['name' => 'seller']);
+        $buyerRole = Role::create(['name' => 'buyer']);
+
+        // Create permissions
+        $permissions = [
+            // Product permissions
+            'view products',
+            'create products',
+            'edit products',
+            'delete products',
+
+            // Cart permissions
+            'view cart',
+            'add to cart',
+            'remove from cart',
+
+            // Bill permissions
+            'view bills'
+        ];
+
+        foreach ($permissions as $permission) {
+            Permission::create(['name' => $permission]);
+        }
+
+        // Assign permissions to roles
+        $adminRole->givePermissionTo($permissions);
+
+        $sellerRole->givePermissionTo([
+            'view products',
+            'create products',
+            'edit products',
+            'delete products',
+            'view cart',
+            'add to cart',
+            'remove from cart',
+            'view bills'
+        ]);
+
+        $buyerRole->givePermissionTo([
+            'view products',
+            'view cart',
+            'add to cart',
+            'remove from cart',
+            'view bills'
+        ]);
     }
 }

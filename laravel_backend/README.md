@@ -1,14 +1,8 @@
 # Shopping App API Documentation
 
-## Base URL
-
-```
-http://your-domain.com/api
-```
-
 ## Authentication
 
-All API endpoints (except public ones) require authentication using Laravel Sanctum tokens.
+All protected endpoints require a Bearer token in the Authorization header:
 
 ### Register
 
@@ -24,191 +18,159 @@ Content-Type: application/json
 }
 ```
 
-Response (201 Created):
+Authorization: Bearer <your_token>
+
+````
+
+## Endpoints
+
+### Health Check
+
+```http
+GET /ping
+````
+
+Response:
+
+```json
+{
+    "message": "pong"
+}
+```
+
+### Authentication
+
+#### Register
+
+```http
+POST /register
+```
+
+Request:
+
+```json
+{
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "password123",
+    "password_confirmation": "password123"
+}
+```
+
+Response:
 
 ```json
 {
     "message": "Registration successful. Please check your email for verification code.",
-    "email": "user@example.com"
+    "email": "john@example.com"
 }
 ```
 
-A 6-digit code is sent to email which is used to register account.
+#### Login
 
-Validation Rules:
+```http
+POST /login
+```
 
--   name: required, string, max 255 characters
--   email: required, valid email, max 255 characters, unique
--   password: required, string, min 8 characters, must be confirmed
+Request:
 
-### Verify Email
+```json
+{
+    "email": "john@example.com",
+    "password": "password123"
+}
+```
+
+Response:
+
+```json
+{
+    "token": "access_token_here",
+    "user": {
+        "id": 1,
+        "name": "John Doe",
+        "email": "john@example.com",
+        "role": "buyer"
+    }
+}
+```
+
+#### Verify Code
 
 ```http
 POST /verify-code
-Content-Type: application/json
+```
 
+Request:
+
+```json
 {
-    "email": "user@example.com",
+    "email": "john@example.com",
     "code": "123456"
 }
 ```
 
-Response (200 OK):
-
-```json
-{
-    "message": "Email verified successfully"
-}
-```
-
-Error Response (400 Bad Request):
-
-```json
-{
-    "message": "Invalid or expired verification code"
-}
-```
-
-Validation Rules:
-
--   email: required, valid email
--   code: required, string, exactly 6 characters
-
-### Resend Verification Code
+#### Resend Verification Code
 
 ```http
 POST /resend-verification-code
-Content-Type: application/json
-
-{
-    "email": "user@example.com"
-}
 ```
 
-Response (200 OK):
+Request:
 
 ```json
 {
-    "message": "New verification code sent to your email"
+    "email": "john@example.com"
 }
 ```
 
-Error Response (404 Not Found):
-
-```json
-{
-    "message": "User not found or already verified"
-}
-```
-
-Validation Rules:
-
--   email: required, valid email
-
-### Login
-
-(must verify email before login)
-
-```http
-POST /login
-Content-Type: application/json
-
-{
-    "email": "user@example.com",
-    "password": "password"
-}
-```
-
-Response (200 OK):
-
-```json
-{
-    "message": "Login successful",
-    "user": {
-        "id": 1,
-        "name": "John Doe",
-        "email": "user@example.com",
-        "email_verified_at": "2024-03-20T10:00:00.000000Z",
-        "role": "buyer"
-    },
-    "token": "access_token_here"
-}
-```
-
-Error Responses:
-
--   401 Unauthorized:
-
-```json
-{
-    "message": "Invalid credentials"
-}
-```
-
--   403 Forbidden:
-
-```json
-{
-    "message": "Please verify your email address first.",
-    "email": "user@example.com"
-}
-```
-
-Validation Rules:
-
--   email: required, valid email
--   password: required, string, min 8 characters
-
-### Logout
-
-```http
-POST /logout
-Authorization: Bearer {token}
-```
-
-Response (200 OK):
-
-```json
-{
-    "message": "Logged out"
-}
-```
-
-### Forgot Password
+#### Forgot Password
 
 ```http
 POST /forgot-password
-Content-Type: application/json
+```
 
+Request:
+
+```json
 {
-    "email": "user@example.com"
+    "email": "john@example.com"
 }
 ```
 
-### Reset Password
+#### Reset Password
 
 ```http
 POST /reset-password
-Content-Type: application/json
+```
 
+Request:
+
+```json
 {
-    "email": "user@example.com",
+    "email": "john@example.com",
     "token": "reset_token",
     "password": "new_password",
     "password_confirmation": "new_password"
 }
 ```
 
-### Profile Management
+### Protected Routes
 
-#### Get Profile
+#### Logout
+
+```http
+POST /logout
+```
+
+#### Profile
 
 ```http
 GET /profile
 Authorization: Bearer {token}
 ```
 
-Response (200 OK):
+Response:
 
 ```json
 {
@@ -217,19 +179,7 @@ Response (200 OK):
         "id": 1,
         "name": "John Doe",
         "email": "john@example.com",
-        "email_verified_at": "2024-03-20T10:00:00.000000Z",
-        "roles": [
-            {
-                "id": 1,
-                "name": "buyer",
-                "permissions": [
-                    {
-                        "id": 1,
-                        "name": "view-products"
-                    }
-                ]
-            }
-        ]
+        "role": "buyer"
     }
 }
 ```
@@ -250,113 +200,27 @@ Content-Type: application/json
 }
 ```
 
-Response (200 OK):
+Request:
 
 ```json
 {
-    "status": "success",
-    "message": "Profile updated successfully",
-    "data": {
-        "id": 1,
-        "name": "John Updated",
-        "email": "john.updated@example.com",
-        "email_verified_at": "2024-03-20T10:00:00.000000Z",
-        "roles": [
-            {
-                "id": 1,
-                "name": "buyer",
-                "permissions": [
-                    {
-                        "id": 1,
-                        "name": "view-products"
-                    }
-                ]
-            }
-        ]
-    }
+    "name": "John Doe",
+    "email": "john@example.com",
+    "current_password": "current_password",
+    "password": "new_password",
+    "password_confirmation": "new_password"
 }
 ```
 
-Validation Rules:
+### Products
 
--   name: required, string, max 255 characters
--   email: required, valid email, max 255 characters, unique (except for current user)
--   current_password: required when changing password
--   password: optional, string, min 8 characters, must be confirmed if provided
-
-## Admin Endpoints
-
-All admin endpoints require the 'admin' role and authentication token.
-
-### Dashboard
+#### List Products
 
 ```http
-GET /admin/dashboard
-Authorization: Bearer {token}
+GET /products
 ```
 
-Response (200 OK):
-
-```json
-{
-    "status": "success",
-    "data": {
-        "analytics": {
-            "total_users": 123,
-            "total_roles": 3,
-            "total_permissions": 15,
-            "users_by_role": [
-                {
-                    "name": "admin",
-                    "total": 1
-                },
-                {
-                    "name": "seller",
-                    "total": 45
-                },
-                {
-                    "name": "buyer",
-                    "total": 73
-                }
-            ]
-        },
-        "recent_users": [
-            {
-                "id": 123,
-                "name": "John Doe",
-                "email": "john@example.com",
-                "roles": [
-                    {
-                        "id": 1,
-                        "name": "buyer"
-                    }
-                ]
-            }
-        ]
-    }
-}
-```
-
-Error Response (500 Internal Server Error):
-
-```json
-{
-    "status": "error",
-    "message": "Failed to fetch dashboard data",
-    "error": "Error details"
-}
-```
-
-### Role Management
-
-#### List Roles
-
-```http
-GET /admin/roles
-Authorization: Bearer {token}
-```
-
-Response (200 OK):
+Response:
 
 ```json
 {
@@ -364,134 +228,116 @@ Response (200 OK):
     "data": [
         {
             "id": 1,
-            "name": "admin",
-            "permissions": [
-                {
-                    "id": 1,
-                    "name": "manage-users"
-                }
-            ]
+            "title": "Product Name",
+            "description": "Product Description",
+            "price": 99.99,
+            "quantity": 10,
+            "seller": {
+                "id": 2,
+                "name": "Seller Name",
+                "email": "seller@example.com"
+            }
         }
     ]
 }
 ```
 
-#### Create Role
+#### Get Product
 
 ```http
-POST /admin/roles
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-    "name": "editor"
-}
+GET /products/{id}
 ```
 
-Response (201 Created):
+Response:
 
 ```json
 {
     "status": "success",
     "message": "Role created successfully",
     "data": {
-        "id": 2,
-        "name": "editor",
-        "permissions": []
+        "id": 1,
+        "title": "Product Name",
+        "description": "Product Description",
+        "price": 99.99,
+        "quantity": 10,
+        "seller": {
+            "id": 2,
+            "name": "Seller Name",
+            "email": "seller@example.com"
+        }
     }
 }
 ```
 
-Validation Rules:
-
--   name: required, string, unique
-
-#### Get Role
+#### Create Product (Admin/Seller only)
 
 ```http
-GET /admin/roles/{id}
-Authorization: Bearer {token}
+POST /admin/products
+POST /seller/products
 ```
 
-Response (200 OK):
+Request:
+
+```json
+{
+    "title": "Product Name",
+    "description": "Product Description",
+    "price": 99.99,
+    "quantity": 10
+}
+```
+
+Response:
 
 ```json
 {
     "status": "success",
+    "message": "Product created successfully",
     "data": {
         "id": 1,
-        "name": "admin",
-        "permissions": [
-            {
-                "id": 1,
-                "name": "manage-users"
-            }
-        ]
+        "title": "Product Name",
+        "description": "Product Description",
+        "price": 99.99,
+        "quantity": 10,
+        "seller_id": 2
     }
 }
 ```
 
-#### Update Role
+#### Update Product (Admin/Seller only)
 
 ```http
-PUT /admin/roles/{id}
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-    "name": "senior-editor"
-}
+PUT /admin/products/{id}
+PUT /seller/products/{id}
 ```
 
-Response (200 OK):
+Request:
 
 ```json
 {
-    "status": "success",
-    "message": "Role updated successfully",
-    "data": {
-        "id": 1,
-        "name": "senior-editor",
-        "permissions": [
-            {
-                "id": 1,
-                "name": "manage-users"
-            }
-        ]
-    }
+    "title": "Updated Product Name",
+    "description": "Updated Description",
+    "price": 89.99,
+    "quantity": 5
 }
 ```
 
-Validation Rules:
-
--   name: required, string, unique
-
-#### Delete Role
+#### Delete Product (Admin/Seller only)
 
 ```http
-DELETE /admin/roles/{id}
-Authorization: Bearer {token}
+DELETE /admin/products/{id}
+DELETE /seller/products/{id}
 ```
 
-Response (200 OK):
+### Cart
 
-```json
-{
-    "status": "success",
-    "message": "Role deleted successfully"
-}
-```
-
-### Permission Management
-
-#### List Permissions
+#### View Cart
 
 ```http
-GET /admin/permissions
-Authorization: Bearer {token}
+GET /cart
 ```
 
-Response (200 OK):
+Response:
 
 ```json
 {
@@ -499,468 +345,158 @@ Response (200 OK):
     "data": [
         {
             "id": 1,
-            "name": "manage-users"
+            "quantity": 2,
+            "product": {
+                "id": 1,
+                "title": "Product Name",
+                "price": 99.99,
+                "seller": {
+                    "id": 2,
+                    "name": "Seller Name"
+                }
+            }
         }
     ]
 }
 ```
 
-#### Create Permission
+#### Add to Cart
 
 ```http
-POST /admin/permissions
-Authorization: Bearer {token}
-Content-Type: application/json
+POST /cart/add
+```
 
+Request:
+
+```json
 {
-    "name": "edit-posts"
+    "product_id": 1,
+    "quantity": 2
 }
 ```
 
-Response (201 Created):
+#### Remove from Cart
+
+```http
+POST /cart/remove
+```
+
+Request:
+
+```json
+{
+    "product_id": 1
+}
+```
+
+#### Update Cart Quantity
+
+```http
+PUT /cart/update-quantity
+```
+
+Request:
+
+```json
+{
+    "product_id": 1,
+    "quantity": 3
+}
+```
+
+### Bills
+
+#### List Bills
+
+```http
+GET /bills
+```
+
+Response:
 
 ```json
 {
     "status": "success",
-    "message": "Permission created successfully",
-    "data": {
-        "id": 2,
-        "name": "edit-posts"
-    }
-}
-```
-
-Validation Rules:
-
--   name: required, string, unique
-
-#### Get Permission
-
-```http
-GET /admin/permissions/{id}
-Authorization: Bearer {token}
-```
-
-Response (200 OK):
-
-```json
-{
-    "status": "success",
-    "data": {
-        "id": 1,
-        "name": "manage-users"
-    }
-}
-```
-
-#### Update Permission
-
-```http
-PUT /admin/permissions/{id}
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-    "name": "manage-posts"
-}
-```
-
-Response (200 OK):
-
-```json
-{
-    "status": "success",
-    "message": "Permission updated successfully",
-    "data": {
-        "id": 1,
-        "name": "manage-posts"
-    }
-}
-```
-
-Validation Rules:
-
--   name: required, string, unique
-
-#### Delete Permission
-
-```http
-DELETE /admin/permissions/{id}
-Authorization: Bearer {token}
-```
-
-Response (200 OK):
-
-```json
-{
-    "status": "success",
-    "message": "Permission deleted successfully"
-}
-```
-
-#### Assign Permissions to Role
-
-```http
-POST /admin/permissions/assign-to-role
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-    "role_id": 1,
-    "permission_ids": [1, 2, 3]
-}
-```
-
-Response (200 OK):
-
-```json
-{
-    "status": "success",
-    "message": "Permissions assigned to role successfully"
-}
-```
-
-Validation Rules:
-
--   role_id: required, exists in roles table
--   permission_ids: required, array of existing permission IDs
-
-#### Remove Permissions from Role
-
-```http
-POST /admin/permissions/remove-from-role
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-    "role_id": 1,
-    "permission_ids": [1, 2]
-}
-```
-
-Response (200 OK):
-
-```json
-{
-    "status": "success",
-    "message": "Permissions removed from role successfully"
-}
-```
-
-Validation Rules:
-
--   role_id: required, exists in roles table
--   permission_ids: required, array of existing permission IDs
-
-### User Role Management
-
-#### Assign Role to User
-
-```http
-POST /admin/users/assign-role
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-    "user_id": 1,
-    "role_id": 1
-}
-```
-
-Response (200 OK):
-
-```json
-{
-    "status": "success",
-    "message": "Role assigned to user successfully"
-}
-```
-
-Validation Rules:
-
--   user_id: required, exists in users table
--   role_id: required, exists in roles table
-
-#### Remove Role from User
-
-```http
-POST /admin/users/remove-role
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-    "user_id": 1
-}
-```
-
-Response (200 OK):
-
-```json
-{
-    "status": "success",
-    "message": "Role removed from user successfully"
-}
-```
-
-Validation Rules:
-
--   user_id: required, exists in users table
-
-#### Get User's Role
-
-```http
-GET /admin/users/{userId}/role
-Authorization: Bearer {token}
-```
-
-Response (200 OK):
-
-```json
-{
-    "status": "success",
-    "data": {
-        "id": 1,
-        "name": "admin",
-        "permissions": [
-            {
-                "id": 1,
-                "name": "manage-users"
-            }
-        ]
-    }
-}
-```
-
-### User Management
-
-#### List Users
-
-```http
-GET /admin/users
-Authorization: Bearer {token}
-```
-
-Response (200 OK):
-
-```json
-{
-    "status": "success",
-    "data": {
-        "current_page": 1,
-        "data": [
-            {
-                "id": 1,
-                "name": "John Doe",
-                "email": "john@example.com",
-                "email_verified_at": "2024-03-20T10:00:00.000000Z",
-                "roles": [
-                    {
+    "data": [
+        {
+            "id": 1,
+            "total_amount": 199.98,
+            "created_at": "2024-03-19T12:00:00Z",
+            "items": [
+                {
+                    "id": 1,
+                    "quantity": 2,
+                    "price_at_time": 99.99,
+                    "product": {
                         "id": 1,
-                        "name": "buyer"
+                        "title": "Product Name",
+                        "seller": {
+                            "id": 2,
+                            "name": "Seller Name"
+                        }
                     }
-                ]
-            }
-        ],
-        "per_page": 10,
-        "total": 1
-    }
+                }
+            ]
+        }
+    ]
 }
 ```
 
-#### Create User
+#### Get Bill
 
 ```http
-POST /admin/users
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-    "name": "Jane Doe",
-    "email": "jane@example.com",
-    "password": "password",
-    "password_confirmation": "password",
-    "role": "buyer"
-}
+GET /bills/{id}
 ```
 
-Response (201 Created):
+#### Checkout
+
+```http
+POST /checkout
+```
+
+Response:
 
 ```json
 {
     "status": "success",
-    "message": "User created successfully",
-    "data": {
-        "id": 2,
-        "name": "Jane Doe",
-        "email": "jane@example.com",
-        "email_verified_at": "2024-03-20T10:00:00.000000Z",
-        "roles": [
-            {
-                "id": 1,
-                "name": "buyer"
-            }
-        ]
-    }
-}
-```
-
-Validation Rules:
-
--   name: required, string, max 255 characters
--   email: required, valid email, max 255 characters, unique
--   password: required, string, min 8 characters, must be confirmed
--   role: required, string, exists in roles table
-
-#### Get User
-
-```http
-GET /admin/users/{id}
-Authorization: Bearer {token}
-```
-
-Response (200 OK):
-
-```json
-{
-    "status": "success",
+    "message": "Checkout completed successfully",
     "data": {
         "id": 1,
-        "name": "John Doe",
-        "email": "john@example.com",
-        "email_verified_at": "2024-03-20T10:00:00.000000Z",
-        "roles": [
+        "total_amount": 199.98,
+        "items": [
             {
                 "id": 1,
-                "name": "buyer"
+                "quantity": 2,
+                "price_at_time": 99.99,
+                "product": {
+                    "id": 1,
+                    "title": "Product Name",
+                    "seller": {
+                        "id": 2,
+                        "name": "Seller Name"
+                    }
+                }
             }
         ]
-    }
-}
-```
-
-#### Update User
-
-```http
-PUT /admin/users/{id}
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-    "name": "John Updated",
-    "email": "john.updated@example.com",
-    "password": "new_password",
-    "password_confirmation": "new_password",
-    "role": "seller"
-}
-```
-
-Response (200 OK):
-
-```json
-{
-    "status": "success",
-    "message": "User updated successfully",
-    "data": {
-        "id": 1,
-        "name": "John Updated",
-        "email": "john.updated@example.com",
-        "email_verified_at": "2024-03-20T10:00:00.000000Z",
-        "roles": [
-            {
-                "id": 2,
-                "name": "seller"
-            }
-        ]
-    }
-}
-```
-
-Validation Rules:
-
--   name: required, string, max 255 characters
--   email: required, valid email, max 255 characters, unique (except for current user)
--   password: optional, string, min 8 characters, must be confirmed if provided
--   role: required, string, exists in roles table
-
-#### Delete User
-
-```http
-DELETE /admin/users/{id}
-Authorization: Bearer {token}
-```
-
-Response (200 OK):
-
-```json
-{
-    "status": "success",
-    "message": "User deleted successfully"
-}
-```
-
-Note: Admins cannot delete their own account. Attempting to do so will result in a 403 Forbidden response.
-
-## Seller Endpoints
-
-### Dashboard
-
-```http
-GET /seller/dashboard
-Authorization: Bearer {token}
-```
-
-Response (200 OK):
-
-```json
-{
-    "message": "Hello Seller"
-}
-```
-
-## Buyer Endpoints
-
-### Dashboard
-
-```http
-GET /buyer/dashboard
-Authorization: Bearer {token}
-```
-
-Response (200 OK):
-
-```json
-{
-    "message": "Hello Buyer"
-}
-```
-
-## Response Format
-
-All API responses follow this format:
-
-```json
-{
-    "status": "success|error",
-    "message": "Optional message",
-    "data": {
-        // Response data
     }
 }
 ```
 
 ## Error Responses
 
+All error responses follow this format:
+
 ```json
 {
     "status": "error",
-    "message": "Error message",
+    "message": "Error message here",
     "errors": {
-        // Validation errors
+        "field": ["Error details"]
     }
 }
 ```
 
-## Status Codes
+Common HTTP Status Codes:
 
 -   200: Success
 -   201: Created
@@ -971,17 +507,8 @@ All API responses follow this format:
 -   422: Validation Error
 -   500: Server Error
 
-## Rate Limiting
+## Role-Based Access
 
-API requests are limited to 60 requests per minute per IP address.
-
-## CORS
-
-The API supports CORS and can be accessed from any origin.
-
-## Security
-
--   All endpoints (except public ones) require authentication
--   Tokens expire after 30 days
--   Passwords are hashed using bcrypt
--   CSRF protection is disabled for API routes
+-   Admin: Full access to all endpoints
+-   Seller: Can manage their own products and use cart/bill features
+-   Buyer: Can view products and use cart/bill features

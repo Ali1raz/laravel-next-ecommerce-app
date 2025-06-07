@@ -24,6 +24,23 @@ Content-Type: application/json
 }
 ```
 
+Response (201 Created):
+
+```json
+{
+    "message": "Registration successful. Please check your email for verification code.",
+    "email": "user@example.com"
+}
+```
+
+A 6-digit code is sent to email which is used to register account.
+
+Validation Rules:
+
+-   name: required, string, max 255 characters
+-   email: required, valid email, max 255 characters, unique
+-   password: required, string, min 8 characters, must be confirmed
+
 ### Verify Email
 
 ```http
@@ -36,6 +53,27 @@ Content-Type: application/json
 }
 ```
 
+Response (200 OK):
+
+```json
+{
+    "message": "Email verified successfully"
+}
+```
+
+Error Response (400 Bad Request):
+
+```json
+{
+    "message": "Invalid or expired verification code"
+}
+```
+
+Validation Rules:
+
+-   email: required, valid email
+-   code: required, string, exactly 6 characters
+
 ### Resend Verification Code
 
 ```http
@@ -46,6 +84,26 @@ Content-Type: application/json
     "email": "user@example.com"
 }
 ```
+
+Response (200 OK):
+
+```json
+{
+    "message": "New verification code sent to your email"
+}
+```
+
+Error Response (404 Not Found):
+
+```json
+{
+    "message": "User not found or already verified"
+}
+```
+
+Validation Rules:
+
+-   email: required, valid email
 
 ### Login
 
@@ -61,11 +119,59 @@ Content-Type: application/json
 }
 ```
 
+Response (200 OK):
+
+```json
+{
+    "message": "Login successful",
+    "user": {
+        "id": 1,
+        "name": "John Doe",
+        "email": "user@example.com",
+        "email_verified_at": "2024-03-20T10:00:00.000000Z",
+        "role": "buyer"
+    },
+    "token": "access_token_here"
+}
+```
+
+Error Responses:
+
+-   401 Unauthorized:
+
+```json
+{
+    "message": "Invalid credentials"
+}
+```
+
+-   403 Forbidden:
+
+```json
+{
+    "message": "Please verify your email address first.",
+    "email": "user@example.com"
+}
+```
+
+Validation Rules:
+
+-   email: required, valid email
+-   password: required, string, min 8 characters
+
 ### Logout
 
 ```http
 POST /logout
 Authorization: Bearer {token}
+```
+
+Response (200 OK):
+
+```json
+{
+    "message": "Logged out"
+}
 ```
 
 ### Forgot Password
@@ -95,6 +201,8 @@ Content-Type: application/json
 
 ## Admin Endpoints
 
+All admin endpoints require the 'admin' role and authentication token.
+
 ### Dashboard
 
 ```http
@@ -102,7 +210,7 @@ GET /admin/dashboard
 Authorization: Bearer {token}
 ```
 
-Response:
+Response (200 OK):
 
 ```json
 {
@@ -144,6 +252,16 @@ Response:
 }
 ```
 
+Error Response (500 Internal Server Error):
+
+```json
+{
+    "status": "error",
+    "message": "Failed to fetch dashboard data",
+    "error": "Error details"
+}
+```
+
 ### Role Management
 
 #### List Roles
@@ -151,6 +269,26 @@ Response:
 ```http
 GET /admin/roles
 Authorization: Bearer {token}
+```
+
+Response (200 OK):
+
+```json
+{
+    "status": "success",
+    "data": [
+        {
+            "id": 1,
+            "name": "admin",
+            "permissions": [
+                {
+                    "id": 1,
+                    "name": "manage-users"
+                }
+            ]
+        }
+    ]
+}
 ```
 
 #### Create Role
@@ -165,11 +303,47 @@ Content-Type: application/json
 }
 ```
 
+Response (201 Created):
+
+```json
+{
+    "status": "success",
+    "message": "Role created successfully",
+    "data": {
+        "id": 2,
+        "name": "editor",
+        "permissions": []
+    }
+}
+```
+
+Validation Rules:
+
+-   name: required, string, unique
+
 #### Get Role
 
 ```http
 GET /admin/roles/{id}
 Authorization: Bearer {token}
+```
+
+Response (200 OK):
+
+```json
+{
+    "status": "success",
+    "data": {
+        "id": 1,
+        "name": "admin",
+        "permissions": [
+            {
+                "id": 1,
+                "name": "manage-users"
+            }
+        ]
+    }
+}
 ```
 
 #### Update Role
@@ -184,11 +358,43 @@ Content-Type: application/json
 }
 ```
 
+Response (200 OK):
+
+```json
+{
+    "status": "success",
+    "message": "Role updated successfully",
+    "data": {
+        "id": 1,
+        "name": "senior-editor",
+        "permissions": [
+            {
+                "id": 1,
+                "name": "manage-users"
+            }
+        ]
+    }
+}
+```
+
+Validation Rules:
+
+-   name: required, string, unique
+
 #### Delete Role
 
 ```http
 DELETE /admin/roles/{id}
 Authorization: Bearer {token}
+```
+
+Response (200 OK):
+
+```json
+{
+    "status": "success",
+    "message": "Role deleted successfully"
+}
 ```
 
 ### Permission Management
@@ -198,6 +404,20 @@ Authorization: Bearer {token}
 ```http
 GET /admin/permissions
 Authorization: Bearer {token}
+```
+
+Response (200 OK):
+
+```json
+{
+    "status": "success",
+    "data": [
+        {
+            "id": 1,
+            "name": "manage-users"
+        }
+    ]
+}
 ```
 
 #### Create Permission
@@ -212,11 +432,40 @@ Content-Type: application/json
 }
 ```
 
+Response (201 Created):
+
+```json
+{
+    "status": "success",
+    "message": "Permission created successfully",
+    "data": {
+        "id": 2,
+        "name": "edit-posts"
+    }
+}
+```
+
+Validation Rules:
+
+-   name: required, string, unique
+
 #### Get Permission
 
 ```http
 GET /admin/permissions/{id}
 Authorization: Bearer {token}
+```
+
+Response (200 OK):
+
+```json
+{
+    "status": "success",
+    "data": {
+        "id": 1,
+        "name": "manage-users"
+    }
+}
 ```
 
 #### Update Permission
@@ -231,11 +480,37 @@ Content-Type: application/json
 }
 ```
 
+Response (200 OK):
+
+```json
+{
+    "status": "success",
+    "message": "Permission updated successfully",
+    "data": {
+        "id": 1,
+        "name": "manage-posts"
+    }
+}
+```
+
+Validation Rules:
+
+-   name: required, string, unique
+
 #### Delete Permission
 
 ```http
 DELETE /admin/permissions/{id}
 Authorization: Bearer {token}
+```
+
+Response (200 OK):
+
+```json
+{
+    "status": "success",
+    "message": "Permission deleted successfully"
+}
 ```
 
 #### Assign Permissions to Role
@@ -251,6 +526,20 @@ Content-Type: application/json
 }
 ```
 
+Response (200 OK):
+
+```json
+{
+    "status": "success",
+    "message": "Permissions assigned to role successfully"
+}
+```
+
+Validation Rules:
+
+-   role_id: required, exists in roles table
+-   permission_ids: required, array of existing permission IDs
+
 #### Remove Permissions from Role
 
 ```http
@@ -263,6 +552,20 @@ Content-Type: application/json
     "permission_ids": [1, 2]
 }
 ```
+
+Response (200 OK):
+
+```json
+{
+    "status": "success",
+    "message": "Permissions removed from role successfully"
+}
+```
+
+Validation Rules:
+
+-   role_id: required, exists in roles table
+-   permission_ids: required, array of existing permission IDs
 
 ### User Role Management
 
@@ -279,6 +582,20 @@ Content-Type: application/json
 }
 ```
 
+Response (200 OK):
+
+```json
+{
+    "status": "success",
+    "message": "Role assigned to user successfully"
+}
+```
+
+Validation Rules:
+
+-   user_id: required, exists in users table
+-   role_id: required, exists in roles table
+
 #### Remove Role from User
 
 ```http
@@ -291,11 +608,42 @@ Content-Type: application/json
 }
 ```
 
+Response (200 OK):
+
+```json
+{
+    "status": "success",
+    "message": "Role removed from user successfully"
+}
+```
+
+Validation Rules:
+
+-   user_id: required, exists in users table
+
 #### Get User's Role
 
 ```http
 GET /admin/users/{userId}/role
 Authorization: Bearer {token}
+```
+
+Response (200 OK):
+
+```json
+{
+    "status": "success",
+    "data": {
+        "id": 1,
+        "name": "admin",
+        "permissions": [
+            {
+                "id": 1,
+                "name": "manage-users"
+            }
+        ]
+    }
+}
 ```
 
 ### User Management
@@ -307,7 +655,7 @@ GET /admin/users
 Authorization: Bearer {token}
 ```
 
-Response:
+Response (200 OK):
 
 ```json
 {
@@ -350,7 +698,7 @@ Content-Type: application/json
 }
 ```
 
-Response:
+Response (201 Created):
 
 ```json
 {
@@ -371,6 +719,13 @@ Response:
 }
 ```
 
+Validation Rules:
+
+-   name: required, string, max 255 characters
+-   email: required, valid email, max 255 characters, unique
+-   password: required, string, min 8 characters, must be confirmed
+-   role: required, string, exists in roles table
+
 #### Get User
 
 ```http
@@ -378,7 +733,7 @@ GET /admin/users/{id}
 Authorization: Bearer {token}
 ```
 
-Response:
+Response (200 OK):
 
 ```json
 {
@@ -414,7 +769,7 @@ Content-Type: application/json
 }
 ```
 
-Response:
+Response (200 OK):
 
 ```json
 {
@@ -435,6 +790,13 @@ Response:
 }
 ```
 
+Validation Rules:
+
+-   name: required, string, max 255 characters
+-   email: required, valid email, max 255 characters, unique (except for current user)
+-   password: optional, string, min 8 characters, must be confirmed if provided
+-   role: required, string, exists in roles table
+
 #### Delete User
 
 ```http
@@ -442,7 +804,7 @@ DELETE /admin/users/{id}
 Authorization: Bearer {token}
 ```
 
-Response:
+Response (200 OK):
 
 ```json
 {
@@ -462,6 +824,14 @@ GET /seller/dashboard
 Authorization: Bearer {token}
 ```
 
+Response (200 OK):
+
+```json
+{
+    "message": "Hello Seller"
+}
+```
+
 ## Buyer Endpoints
 
 ### Dashboard
@@ -469,6 +839,14 @@ Authorization: Bearer {token}
 ```http
 GET /buyer/dashboard
 Authorization: Bearer {token}
+```
+
+Response (200 OK):
+
+```json
+{
+    "message": "Hello Buyer"
+}
 ```
 
 ## Response Format

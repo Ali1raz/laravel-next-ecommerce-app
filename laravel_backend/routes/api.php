@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PasswordResetController;
+use App\Http\Controllers\Api\Admin\DashboardController;
 
 // 🔁 Health check endpoint
 Route::get('/ping', fn() => response()->json(['message' => 'pong']));
@@ -23,7 +24,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::prefix('admin')->middleware('role:admin')->group(function () {
-        Route::get('/dashboard', fn() => response()->json(['message' => 'Hello Admin']));
+        Route::get('/dashboard', [DashboardController::class, 'index']);
 
         // Role management
         Route::apiResource('roles', RoleController::class);

@@ -102,6 +102,48 @@ GET /admin/dashboard
 Authorization: Bearer {token}
 ```
 
+Response:
+
+```json
+{
+    "status": "success",
+    "data": {
+        "analytics": {
+            "total_users": 123,
+            "total_roles": 3,
+            "total_permissions": 15,
+            "users_by_role": [
+                {
+                    "name": "admin",
+                    "total": 1
+                },
+                {
+                    "name": "seller",
+                    "total": 45
+                },
+                {
+                    "name": "buyer",
+                    "total": 73
+                }
+            ]
+        },
+        "recent_users": [
+            {
+                "id": 123,
+                "name": "John Doe",
+                "email": "john@example.com",
+                "roles": [
+                    {
+                        "id": 1,
+                        "name": "buyer"
+                    }
+                ]
+            }
+        ]
+    }
+}
+```
+
 ### Role Management
 
 #### List Roles

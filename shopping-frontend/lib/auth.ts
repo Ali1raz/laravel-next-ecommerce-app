@@ -18,7 +18,7 @@ interface ApiError {
   errors?: Record<string, string[]>;
 }
 
-const API_BASE_URL = `${process.env.BACKEND_URL}/api`;
+const API_BASE_URL = "http://127.0.0.1:8000/api";
 
 export class AuthService {
   private static TOKEN_KEY = "admin_token";
@@ -33,23 +33,48 @@ export class AuthService {
       body: JSON.stringify(credentials),
     });
 
-    if (!response.ok) {
-      const error: ApiError = await response.json();
-      throw new Error(error.message || "Login failed");
+    const result = await response.json();
+
+    if (response.ok) {
+      // Handle successful response
+      const data: LoginResponse = {
+        token: result.token || result.data?.token,
+        user: result.user || result.data?.user,
+      };
+
+      // Store token and user data
+      if (typeof window !== "undefined") {
+        localStorage.setItem(this.TOKEN_KEY, data.token);
+        localStorage.setItem(this.USER_KEY, JSON.stringify(data.user));
+      }
+
+      return data;
+    } else {
+      // Handle error response
+      throw new Error(result.message || "Login failed");
     }
-
-    const data: LoginResponse = await response.json();
-
-    // Store token and user data
-    localStorage.setItem(this.TOKEN_KEY, data.token);
-    localStorage.setItem(this.USER_KEY, JSON.stringify(data.user));
-
-    return data;
   }
 
-  static logout(): void {
-    localStorage.removeItem(this.TOKEN_KEY);
-    localStorage.removeItem(this.USER_KEY);
+  static async logout(): Promise<void> {
+    const token = this.getToken();
+    if (token) {
+      try {
+        await fetch(`${API_BASE_URL}/logout`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+      } catch (error) {
+        console.error("Logout request failed:", error);
+      }
+    }
+
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(this.TOKEN_KEY);
+      localStorage.removeItem(this.USER_KEY);
+    }
   }
 
   static getToken(): string | null {

@@ -1,6 +1,6 @@
 import { AuthService } from "./auth";
 
-const API_BASE_URL = `${process.env.BACKEND_URL}/api`;
+const API_BASE_URL = "http://127.0.0.1:8000/api";
 
 interface ApiRequestOptions {
   method?: "GET" | "POST" | "PUT" | "DELETE";
@@ -35,12 +35,63 @@ export class ApiClient {
       throw new Error(error.message || "API request failed");
     }
 
-    return response.json();
+    const result = await response.json();
+
+    // Handle the new API response format
+    if (result.status === "error") {
+      throw new Error(result.message || "API request failed");
+    }
+
+    return result.data || result;
   }
 
   // Dashboard
   static getDashboard() {
     return this.makeRequest("/admin/dashboard");
+  }
+
+  // Users Management
+  static getUsers() {
+    return this.makeRequest("/admin/users");
+  }
+
+  static createUser(data: {
+    name: string;
+    email: string;
+    password: string;
+    password_confirmation: string;
+    role: string;
+  }) {
+    return this.makeRequest("/admin/users", {
+      method: "POST",
+      body: data,
+    });
+  }
+
+  static getUser(id: number) {
+    return this.makeRequest(`/admin/users/${id}`);
+  }
+
+  static updateUser(
+    id: number,
+    data: {
+      name?: string;
+      email?: string;
+      password?: string;
+      password_confirmation?: string;
+      role?: string;
+    }
+  ) {
+    return this.makeRequest(`/admin/users/${id}`, {
+      method: "PUT",
+      body: data,
+    });
+  }
+
+  static deleteUser(id: number) {
+    return this.makeRequest(`/admin/users/${id}`, {
+      method: "DELETE",
+    });
   }
 
   // Roles

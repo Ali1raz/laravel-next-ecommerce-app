@@ -1,26 +1,20 @@
 # Shopping App API Documentation
 
-## Authentication
+## Base URL
 
-All protected endpoints require a Bearer token in the Authorization header:
-
-### Register
-
-```http
-POST /register
-Content-Type: application/json
-
-{
-    "name": "John Doe",
-    "email": "user@example.com",
-    "password": "password",
-    "password_confirmation": "password"
-}
+```
+http://localhost:8000/api
 ```
 
-Authorization: Bearer <your_token>
+## Authentication
 
-````
+All endpoints except `/register`, `/login`, `/verify-code`, `/resend-verification-code`, `/forgot-password`, `/reset-password`, and `/ping` require authentication using Laravel Sanctum.
+
+Include the token in the Authorization header:
+
+```
+Authorization: Bearer <your_token>
+```
 
 ## Endpoints
 
@@ -28,7 +22,7 @@ Authorization: Bearer <your_token>
 
 ```http
 GET /ping
-````
+```
 
 Response:
 
@@ -72,6 +66,17 @@ Response:
 POST /login
 ```
 
+if not verified email, use post <a href="#verify-code">verify-code first</a>:
+
+```json
+{
+    "message": "Please verify your email address first.",
+    "email": "john@example.com"
+}
+```
+
+if verfified email already:
+
 Request:
 
 ```json
@@ -85,13 +90,16 @@ Response:
 
 ```json
 {
-    "token": "access_token_here",
+    "message": "Login successful",
     "user": {
         "id": 1,
-        "name": "John Doe",
+        "name": "Name of user",
         "email": "john@example.com",
-        "role": "buyer"
-    }
+        "email_verified_at": "2025-06-07T03:15:22.000000Z",
+        "created_at": "2025-06-07T03:15:22.000000Z",
+        "updated_at": "2025-06-07T03:15:22.000000Z"
+    },
+    "token": "34|JKWBof9uxBKutDPdpt7TkAK7Ffe8GgtQNATXOa25afc404d6"
 }
 ```
 
@@ -138,6 +146,15 @@ Request:
 }
 ```
 
+Response:
+
+```json
+{
+    "status": "success",
+    "message": "Password reset code has been sent to your email"
+}
+```
+
 #### Reset Password
 
 ```http
@@ -149,13 +166,20 @@ Request:
 ```json
 {
     "email": "john@example.com",
-    "token": "reset_token",
-    "password": "new_password",
-    "password_confirmation": "new_password"
+    "code": "123456",
+    "password": "newpassword123",
+    "password_confirmation": "newpassword123"
 }
 ```
 
-### Protected Routes
+Response:
+
+```json
+{
+    "status": "success",
+    "message": "Password has been reset successfully"
+}
+```
 
 #### Logout
 
@@ -163,11 +187,12 @@ Request:
 POST /logout
 ```
 
-#### Profile
+### Profile
+
+#### Get Profile
 
 ```http
 GET /profile
-Authorization: Bearer {token}
 ```
 
 Response:
@@ -177,9 +202,29 @@ Response:
     "status": "success",
     "data": {
         "id": 1,
-        "name": "John Doe",
-        "email": "john@example.com",
-        "role": "buyer"
+        "name": "Admin User",
+        "email": "admin@example.com",
+        "email_verified_at": "2025-06-07T03:15:22.000000Z",
+        "roles": [
+            {
+                "id": 1,
+                "name": "admin",
+                "permissions": [
+                    {
+                        "id": 4,
+                        "name": "view-products"
+                    },
+                    {
+                        "id": 5,
+                        "name": "add-products"
+                    },
+                    {
+                        "id": 6,
+                        "name": "delete-products"
+                    }
+                ]
+            }
+        ]
     }
 }
 ```
@@ -188,24 +233,14 @@ Response:
 
 ```http
 PUT /profile
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-    "name": "John Updated",
-    "email": "john.updated@example.com",
-    "current_password": "current_password",
-    "password": "new_password",
-    "password_confirmation": "new_password"
-}
 ```
 
 Request:
 
 ```json
 {
-    "name": "John Doe",
-    "email": "john@example.com",
+    "name": "John Updated",
+    "email": "john.updated@example.com",
     "current_password": "current_password",
     "password": "new_password",
     "password_confirmation": "new_password"
@@ -228,8 +263,8 @@ Response:
     "data": [
         {
             "id": 1,
-            "title": "Product Name",
-            "description": "Product Description",
+            "title": "Product 1",
+            "description": "Description 1",
             "price": 99.99,
             "quantity": 10,
             "seller": {
@@ -253,11 +288,10 @@ Response:
 ```json
 {
     "status": "success",
-    "message": "Role created successfully",
     "data": {
         "id": 1,
-        "title": "Product Name",
-        "description": "Product Description",
+        "title": "Product 1",
+        "description": "Description 1",
         "price": 99.99,
         "quantity": 10,
         "seller": {
@@ -273,34 +307,16 @@ Response:
 
 ```http
 POST /admin/products
-POST /seller/products
 ```
 
 Request:
 
 ```json
 {
-    "title": "Product Name",
-    "description": "Product Description",
+    "title": "New Product",
+    "description": "Product description",
     "price": 99.99,
     "quantity": 10
-}
-```
-
-Response:
-
-```json
-{
-    "status": "success",
-    "message": "Product created successfully",
-    "data": {
-        "id": 1,
-        "title": "Product Name",
-        "description": "Product Description",
-        "price": 99.99,
-        "quantity": 10,
-        "seller_id": 2
-    }
 }
 ```
 
@@ -308,15 +324,14 @@ Response:
 
 ```http
 PUT /admin/products/{id}
-PUT /seller/products/{id}
 ```
 
 Request:
 
 ```json
 {
-    "title": "Updated Product Name",
-    "description": "Updated Description",
+    "title": "Updated Product",
+    "description": "Updated description",
     "price": 89.99,
     "quantity": 5
 }
@@ -326,7 +341,6 @@ Request:
 
 ```http
 DELETE /admin/products/{id}
-DELETE /seller/products/{id}
 ```
 
 ### Cart
@@ -348,7 +362,7 @@ Response:
             "quantity": 2,
             "product": {
                 "id": 1,
-                "title": "Product Name",
+                "title": "Product 1",
                 "price": 99.99,
                 "seller": {
                     "id": 2,
@@ -429,7 +443,7 @@ Response:
                     "price_at_time": 99.99,
                     "product": {
                         "id": 1,
-                        "title": "Product Name",
+                        "title": "Product 1",
                         "seller": {
                             "id": 2,
                             "name": "Seller Name"
@@ -448,21 +462,15 @@ Response:
 GET /bills/{id}
 ```
 
-#### Checkout
-
-```http
-POST /checkout
-```
-
 Response:
 
 ```json
 {
     "status": "success",
-    "message": "Checkout completed successfully",
     "data": {
         "id": 1,
         "total_amount": 199.98,
+        "created_at": "2024-03-19T12:00:00Z",
         "items": [
             {
                 "id": 1,
@@ -470,7 +478,7 @@ Response:
                 "price_at_time": 99.99,
                 "product": {
                     "id": 1,
-                    "title": "Product Name",
+                    "title": "Product 1",
                     "seller": {
                         "id": 2,
                         "name": "Seller Name"
@@ -482,6 +490,12 @@ Response:
 }
 ```
 
+#### Checkout
+
+```http
+POST /checkout
+```
+
 ## Error Responses
 
 All error responses follow this format:
@@ -490,9 +504,7 @@ All error responses follow this format:
 {
     "status": "error",
     "message": "Error message here",
-    "errors": {
-        "field": ["Error details"]
-    }
+    "errors": {} // Optional validation errors
 }
 ```
 
@@ -509,6 +521,6 @@ Common HTTP Status Codes:
 
 ## Role-Based Access
 
--   Admin: Full access to all endpoints
--   Seller: Can manage their own products and use cart/bill features
--   Buyer: Can view products and use cart/bill features
+-   **Admin**: Full access to all endpoints
+-   **Seller**: Can manage their own products and use cart/bill features
+-   **Buyer**: Can view products and use cart/bill features

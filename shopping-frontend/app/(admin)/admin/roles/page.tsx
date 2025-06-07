@@ -31,7 +31,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ApiClient } from "@/lib/api";
+import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Edit, Trash2, Shield, Key } from "lucide-react";
 
@@ -61,7 +61,7 @@ export default function RolesPage() {
 
   const fetchRoles = async () => {
     try {
-      const data = await ApiClient.getRoles();
+      const data = await ApiService.getRoles();
       setRoles(Array.isArray(data) ? data : []);
     } catch (error) {
       toast({
@@ -77,7 +77,7 @@ export default function RolesPage() {
 
   const fetchPermissions = async () => {
     try {
-      const data = await ApiClient.getPermissions();
+      const data = await ApiService.getPermissions();
       setPermissions(Array.isArray(data) ? data : []);
     } catch (error) {
       toast({
@@ -99,13 +99,13 @@ export default function RolesPage() {
 
     try {
       if (editingRole) {
-        await ApiClient.updateRole(editingRole.id, { name: roleName });
+        await ApiService.updateRole(editingRole.id, { name: roleName });
         toast({
           title: "Success",
           description: "Role updated successfully",
         });
       } else {
-        await ApiClient.createRole({ name: roleName });
+        await ApiService.createRole({ name: roleName });
         toast({
           title: "Success",
           description: "Role created successfully",
@@ -130,7 +130,7 @@ export default function RolesPage() {
     if (!selectedRole) return;
 
     try {
-      await ApiClient.assignPermissionsToRole({
+      await ApiService.assignPermissionsToRole({
         role_id: selectedRole.id,
         permission_ids: selectedPermissions,
       });
@@ -163,7 +163,7 @@ export default function RolesPage() {
     if (!confirm("Are you sure you want to delete this role?")) return;
 
     try {
-      await ApiClient.deleteRole(id);
+      await ApiService.deleteRole(id);
       toast({
         title: "Success",
         description: "Role deleted successfully",

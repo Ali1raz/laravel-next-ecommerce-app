@@ -3,7 +3,7 @@
 import type React from "react";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { AuthService } from "@/lib/auth";
 import { AdminSidebar } from "@/components/admin-sidebar";
 import {
@@ -16,10 +16,11 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
-  BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 export default function AdminLayout({
   children,
@@ -27,29 +28,72 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const { toast } = useToast();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check authentication status after component mounts
+    // Only check auth if we're actually on an admin route
+    if (!pathname.startsWith("/admin")) {
+      setIsLoading(false);
+      return;
+    }
+
     const checkAuth = () => {
+      console.log("Admin layout - checking auth for path:", pathname);
+
       const authenticated = AuthService.isAuthenticated();
+      const adminRole = AuthService.isAdmin();
+
+      console.log(
+        "Admin layout - authenticated:",
+        authenticated,
+        "isAdmin:",
+        adminRole
+      );
+
       setIsAuthenticated(authenticated);
+      setIsAdmin(adminRole);
       setIsLoading(false);
 
       if (!authenticated) {
-        router.push("/login");
+        console.log("Admin layout - not authenticated, redirecting to login");
+        router.replace("/login");
+      } else if (!adminRole) {
+        // If authenticated but not admin, redirect to appropriate dashboard
+        const role = AuthService.getUserRole();
+        console.log("Admin layout - not admin, user role:", role);
+
+        toast({
+          title: "Access Denied",
+          description:
+            "You don't have permission to access the admin dashboard",
+          variant: "destructive",
+        });
+
+        if (role === "buyer") {
+          router.replace("/buyer");
+        } else if (role === "seller") {
+          router.replace("/seller");
+        } else {
+          router.replace("/login");
+        }
       }
     };
 
-    checkAuth();
-  }, [router]);
+    // Small delay to prevent race conditions
+    const timer = setTimeout(checkAuth, 100);
+    return () => clearTimeout(timer);
+  }, [router, toast, pathname]);
 
   // Show loading state while checking authentication
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
           <h2 className="text-xl font-semibold mb-2">Loading...</h2>
           <p className="text-muted-foreground">
             Please wait while we verify your session
@@ -59,8 +103,8 @@ export default function AdminLayout({
     );
   }
 
-  // Don't render anything if not authenticated (will redirect)
-  if (!isAuthenticated) {
+  // Don't render anything if not authenticated or not admin (will redirect)
+  if (!isAuthenticated || !isAdmin) {
     return null;
   }
 
@@ -79,7 +123,7 @@ export default function AdminLayout({
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>Dashboard</BreadcrumbPage>
+                  <BreadcrumbLink href="/admin">Dashboard</BreadcrumbLink>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>

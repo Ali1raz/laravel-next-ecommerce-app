@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ApiClient } from "@/lib/api";
+import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, UserCog } from "lucide-react";
 
@@ -65,7 +65,7 @@ export default function UserRolesPage() {
 
   const fetchUsers = async () => {
     try {
-      const response = (await ApiClient.getUsers()) as { data: User[] };
+      const response = (await ApiService.getUsers()) as { data: User[] };
       setUsers(response.data || []);
     } catch (error) {
       toast({
@@ -81,7 +81,7 @@ export default function UserRolesPage() {
 
   const fetchRoles = async () => {
     try {
-      const data = (await ApiClient.getRoles()) as Role[];
+      const data = (await ApiService.getRoles()) as Role[];
       setRoles(Array.isArray(data) ? data : []);
     } catch (error) {
       toast({
@@ -109,7 +109,7 @@ export default function UserRolesPage() {
     }
 
     try {
-      await ApiClient.assignRoleToUser({
+      await ApiService.assignRoleToUser({
         user_id: Number.parseInt(selectedUserId),
         role_id: Number.parseInt(selectedRoleId),
       });
@@ -136,7 +136,7 @@ export default function UserRolesPage() {
       return;
 
     try {
-      await ApiClient.removeRoleFromUser({ user_id: userId });
+      await ApiService.removeRoleFromUser({ user_id: userId });
       toast({
         title: "Success",
         description: "Role removed successfully",

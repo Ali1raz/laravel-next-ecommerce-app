@@ -38,9 +38,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { ApiClient } from "@/lib/api";
+import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Mail, CheckCircle, XCircle } from "lucide-react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Mail,
+  CheckCircle,
+  XCircle,
+  UserCog,
+  Loader2,
+} from "lucide-react";
+import { useRBAC } from "@/hooks/use-rbac";
 
 interface User {
   id: number;
@@ -61,10 +71,15 @@ interface UsersResponse {
 }
 
 export default function UsersPage() {
+  const { isAuthorized, isLoading: isRBACLoading } = useRBAC("admin");
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isChangingRole, setIsChangingRole] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -75,8 +90,9 @@ export default function UsersPage() {
   const { toast } = useToast();
 
   const fetchUsers = async () => {
+    setIsLoading(true);
     try {
-      const response = (await ApiClient.getUsers()) as UsersResponse;
+      const response = (await ApiService.getUsers()) as UsersResponse;
       setUsers(response.data || []);
     } catch (error) {
       toast({
@@ -91,11 +107,14 @@ export default function UsersPage() {
   };
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (isAuthorized) {
+      fetchUsers();
+    }
+  }, [isAuthorized]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
     if (formData.password !== formData.password_confirmation) {
       toast({
@@ -103,18 +122,19 @@ export default function UsersPage() {
         description: "Passwords do not match",
         variant: "destructive",
       });
+      setIsSubmitting(false);
       return;
     }
 
     try {
       if (editingUser) {
-        await ApiClient.updateUser(editingUser.id, formData);
+        await ApiService.updateUser(editingUser.id, formData);
         toast({
           title: "Success",
           description: "User updated successfully",
         });
       } else {
-        await ApiClient.createUser(formData);
+        await ApiService.createUser(formData);
         toast({
           title: "Success",
           description: "User created successfully",
@@ -130,7 +150,7 @@ export default function UsersPage() {
         password_confirmation: "",
         role: "buyer",
       });
-      fetchUsers();
+      await fetchUsers();
     } catch (error) {
       toast({
         title: "Error",
@@ -138,6 +158,38 @@ export default function UsersPage() {
           error instanceof Error ? error.message : "Operation failed",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleChangeRole = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsChangingRole(true);
+
+    if (!selectedUser) {
+      setIsChangingRole(false);
+      return;
+    }
+
+    try {
+      await ApiService.updateUser(selectedUser.id, { role: formData.role });
+      toast({
+        title: "Success",
+        description: `User role changed to ${formData.role} successfully`,
+      });
+      setIsRoleDialogOpen(false);
+      setSelectedUser(null);
+      await fetchUsers();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Failed to change role",
+        variant: "destructive",
+      });
+    } finally {
+      setIsChangingRole(false);
     }
   };
 
@@ -153,16 +205,25 @@ export default function UsersPage() {
     setIsDialogOpen(true);
   };
 
+  const handleChangeUserRole = (user: User) => {
+    setSelectedUser(user);
+    setFormData({
+      ...formData,
+      role: user.roles[0]?.name || "buyer",
+    });
+    setIsRoleDialogOpen(true);
+  };
+
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this user?")) return;
 
     try {
-      await ApiClient.deleteUser(id);
+      await ApiService.deleteUser(id);
       toast({
         title: "Success",
         description: "User deleted successfully",
       });
-      fetchUsers();
+      await fetchUsers();
     } catch (error) {
       toast({
         title: "Error",
@@ -184,6 +245,20 @@ export default function UsersPage() {
     });
     setIsDialogOpen(true);
   };
+
+  if (isRBACLoading || !isAuthorized) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Loading...</h2>
+          <p className="text-muted-foreground">
+            Please wait while we verify your permissions
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -227,6 +302,7 @@ export default function UsersPage() {
                     className="col-span-3"
                     placeholder="Enter full name"
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
@@ -243,6 +319,7 @@ export default function UsersPage() {
                     className="col-span-3"
                     placeholder="Enter email address"
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
@@ -259,6 +336,7 @@ export default function UsersPage() {
                     className="col-span-3"
                     placeholder="Enter password"
                     required={!editingUser}
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
@@ -278,6 +356,7 @@ export default function UsersPage() {
                     className="col-span-3"
                     placeholder="Confirm password"
                     required={!editingUser}
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
@@ -289,6 +368,7 @@ export default function UsersPage() {
                     onValueChange={(value) =>
                       setFormData({ ...formData, role: value })
                     }
+                    disabled={isSubmitting}
                   >
                     <SelectTrigger className="col-span-3">
                       <SelectValue placeholder="Select a role" />
@@ -302,14 +382,72 @@ export default function UsersPage() {
                 </div>
               </div>
               <DialogFooter>
-                <Button type="submit">
-                  {editingUser ? "Update" : "Create"}
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {editingUser ? "Updating..." : "Creating..."}
+                    </>
+                  ) : editingUser ? (
+                    "Update"
+                  ) : (
+                    "Create"
+                  )}
                 </Button>
               </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Role Change Dialog */}
+      <Dialog open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <form onSubmit={handleChangeRole}>
+            <DialogHeader>
+              <DialogTitle>Change User Role</DialogTitle>
+              <DialogDescription>
+                Update the role for {selectedUser?.name}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="change-role" className="text-right">
+                  Role
+                </Label>
+                <Select
+                  value={formData.role}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, role: value })
+                  }
+                  disabled={isChangingRole}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="buyer">Buyer</SelectItem>
+                    <SelectItem value="seller">Seller</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={isChangingRole}>
+                {isChangingRole ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Changing Role...
+                  </>
+                ) : (
+                  "Change Role"
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <Card>
         <CardHeader>
@@ -318,7 +456,12 @@ export default function UsersPage() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-4">Loading users...</div>
+            <div className="flex items-center justify-center py-8">
+              <div className="text-center">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+                <p className="text-muted-foreground">Loading users...</p>
+              </div>
+            </div>
           ) : (
             <Table>
               <TableHeader>
@@ -377,6 +520,13 @@ export default function UsersPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleChangeUserRole(user)}
+                          >
+                            <UserCog className="h-4 w-4" />
+                          </Button>
                           <Button
                             variant="outline"
                             size="sm"

@@ -38,7 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ApiClient } from "@/lib/api";
+import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Edit, Trash2, Key, Shield, Minus } from "lucide-react";
 
@@ -71,7 +71,7 @@ export default function PermissionsPage() {
 
   const fetchPermissions = async () => {
     try {
-      const data = (await ApiClient.getPermissions()) as Permission[];
+      const data = (await ApiService.getPermissions()) as Permission[];
       setPermissions(Array.isArray(data) ? data : []);
     } catch (error) {
       toast({
@@ -87,7 +87,7 @@ export default function PermissionsPage() {
 
   const fetchRoles = async () => {
     try {
-      const data = await ApiClient.getRoles();
+      const data = await ApiService.getRoles();
       setRoles(Array.isArray(data) ? data : []);
     } catch (error) {
       toast({
@@ -109,7 +109,7 @@ export default function PermissionsPage() {
 
     try {
       if (editingPermission) {
-        await ApiClient.updatePermission(editingPermission.id, {
+        await ApiService.updatePermission(editingPermission.id, {
           name: permissionName,
         });
         toast({
@@ -117,7 +117,7 @@ export default function PermissionsPage() {
           description: "Permission updated successfully",
         });
       } else {
-        await ApiClient.createPermission({ name: permissionName });
+        await ApiService.createPermission({ name: permissionName });
         toast({
           title: "Success",
           description: "Permission created successfully",
@@ -149,7 +149,7 @@ export default function PermissionsPage() {
     }
 
     try {
-      await ApiClient.assignPermissionsToRole({
+      await ApiService.assignPermissionsToRole({
         role_id: Number.parseInt(selectedRoleId),
         permission_ids: selectedPermissions,
       });
@@ -183,7 +183,7 @@ export default function PermissionsPage() {
     }
 
     try {
-      await ApiClient.removePermissionsFromRole({
+      await ApiService.removePermissionsFromRole({
         role_id: Number.parseInt(selectedRoleId),
         permission_ids: selectedPermissions,
       });
@@ -216,7 +216,7 @@ export default function PermissionsPage() {
     if (!confirm("Are you sure you want to delete this permission?")) return;
 
     try {
-      await ApiClient.deletePermission(id);
+      await ApiService.deletePermission(id);
       toast({
         title: "Success",
         description: "Permission deleted successfully",

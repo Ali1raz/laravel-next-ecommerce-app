@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ApiClient } from "@/lib/api";
+import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { BarChart3, Users, Shield, Key, UserCheck, Mail } from "lucide-react";
 
@@ -43,17 +43,24 @@ interface DashboardData {
 }
 
 export default function AdminDashboard() {
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
-    null
-  );
+  const [dashboardData, setDashboardData] = useState<DashboardData>({
+    analytics: {
+      total_users: 0,
+      total_roles: 0,
+      total_permissions: 0,
+      users_by_role: [],
+    },
+    recent_users: [],
+  });
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const data = (await ApiClient.getDashboard()) as DashboardData;
-        setDashboardData(data);
+        const response = await ApiService.getDashboard();
+        // Handle the new API response format
+        setDashboardData(response as DashboardData);
       } catch (error) {
         toast({
           title: "Error",
@@ -62,6 +69,16 @@ export default function AdminDashboard() {
               ? error.message
               : "Failed to load dashboard data",
           variant: "destructive",
+        });
+        // Set default data to prevent undefined errors
+        setDashboardData({
+          analytics: {
+            total_users: 0,
+            total_roles: 0,
+            total_permissions: 0,
+            users_by_role: [],
+          },
+          recent_users: [],
         });
       } finally {
         setIsLoading(false);
@@ -122,24 +139,22 @@ export default function AdminDashboard() {
     );
   }
 
-  if (!dashboardData) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Failed to load dashboard data</p>
-        </div>
-      </div>
-    );
-  }
-
   const { analytics, recent_users } = dashboardData;
+
+  // Add safety checks
+  const safeAnalytics = analytics || {
+    total_users: 0,
+    total_roles: 0,
+    total_permissions: 0,
+    users_by_role: [],
+  };
+  const safeRecentUsers = recent_users || [];
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground mt-2">
           Welcome to the admin dashboard. Here's an overview of your system.
         </p>
       </div>
@@ -153,10 +168,10 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {analytics.total_users.toLocaleString()}
+              {safeAnalytics.total_users.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
-              Registered users in the system
+              Registered users in the app
             </p>
           </CardContent>
         </Card>
@@ -168,7 +183,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {analytics.total_roles.toLocaleString()}
+              {safeAnalytics.total_roles.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
               User roles configured
@@ -185,10 +200,10 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {analytics.total_permissions.toLocaleString()}
+              {safeAnalytics.total_permissions.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
-              System permissions available
+              Total permissions available
             </p>
           </CardContent>
         </Card>
@@ -205,7 +220,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {analytics.users_by_role.map((roleData) => {
+              {safeAnalytics.users_by_role.map((roleData) => {
                 const RoleIcon = getRoleIcon(roleData.name);
                 return (
                   <div
@@ -244,7 +259,7 @@ export default function AdminDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {recent_users.length === 0 ? (
+            {safeRecentUsers.length === 0 ? (
               <div className="text-center py-4 text-muted-foreground">
                 No recent users found
               </div>
@@ -257,7 +272,7 @@ export default function AdminDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {recent_users.map((user) => (
+                  {safeRecentUsers.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell>
                         <div className="space-y-1">

@@ -10,6 +10,8 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OrderConfirmationMail;
 
 class BillController extends Controller
 {
@@ -80,6 +82,10 @@ class BillController extends Controller
             $cart->items()->delete();
 
             DB::commit();
+
+            // Send order confirmation email
+            $bill->load('items.product'); // Load relationships for email
+            Mail::to(Auth::user()->email)->send(new OrderConfirmationMail($bill));
 
             return response()->json([
                 'status' => 'success',

@@ -524,3 +524,17 @@ Common HTTP Status Codes:
 -   **Admin**: Full access to all endpoints
 -   **Seller**: Can manage their own products and use cart/bill features
 -   **Buyer**: Can view products and use cart/bill features
+
+### Permission Naming Convention
+
+When creating or updating permissions, the name will be automatically converted to a slug format:
+
+-   All lowercase
+-   Spaces replaced with dashes
+-   No special characters
+
+Example:
+
+-   Input: "View Products" → Saved as: "view-products"
+-   Input: "Add New Product" → Saved as: "add-new-product"
+-   Input: "Delete User Account" → Saved as: "delete-user-account"

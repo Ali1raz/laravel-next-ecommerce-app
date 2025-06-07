@@ -41,8 +41,11 @@ class PermissionController extends Controller
                 'name' => 'required|string|max:255|unique:permissions'
             ]);
 
+            // Convert name to slug
+            $slug = strtolower(str_replace(' ', '-', $request->name));
+
             $permission = Permission::create([
-                'name' => $request->name,
+                'name' => $slug,
                 'guard_name' => 'web'
             ]);
 
@@ -112,7 +115,10 @@ class PermissionController extends Controller
                 'name' => 'required|string|max:255|unique:permissions,name,' . $id
             ]);
 
-            $permission->update(['name' => $request->name]);
+            // Convert name to slug
+            $slug = strtolower(str_replace(' ', '-', $request->name));
+
+            $permission->update(['name' => $slug]);
 
             return response()->json([
                 'message' => 'success',

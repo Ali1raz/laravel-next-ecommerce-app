@@ -118,11 +118,20 @@ class AuthController extends Controller
             ], 403);
         }
 
+        // Check if this is the first login after verification
+        if ($user->roles()->count() === 0) {
+            // Assign buyer role
+            $buyerRole = \Spatie\Permission\Models\Role::where('name', 'buyer')->first();
+            if ($buyerRole) {
+                $user->assignRole($buyerRole);
+            }
+        }
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'message' => 'Login successful',
-            'user' => $user,
+            'user' => $user->load('roles'),
             'token' => $token,
         ]);
     }

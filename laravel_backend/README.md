@@ -525,6 +525,20 @@ Common HTTP Status Codes:
 -   **Seller**: Can manage their own products and use cart/bill features
 -   **Buyer**: Can view products and use cart/bill features
 
+### Role Management Restrictions
+
+1. **Predefined Roles Only**
+
+    - Only the seeded roles (admin, seller, buyer) are available
+    - New roles cannot be created
+    - Existing roles cannot be modified or deleted
+
+2. **Role Assignment Rules**
+    - Admins can assign roles to other users
+    - Admins cannot change their own role
+    - Admins cannot remove their own role
+    - Users are automatically assigned the "buyer" role on first login after email verification
+
 ### Permission Naming Convention
 
 When creating or updating permissions, the name will be automatically converted to a slug format:

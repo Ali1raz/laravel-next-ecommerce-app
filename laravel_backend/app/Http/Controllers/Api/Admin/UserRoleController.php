@@ -9,6 +9,7 @@ use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Auth;
 
 class UserRoleController extends Controller
 {
@@ -22,6 +23,14 @@ class UserRoleController extends Controller
                 'user_id' => 'required|exists:users,id',
                 'role_id' => 'required|exists:roles,id'
             ]);
+
+            // Prevent admin from changing their own role
+            if ($request->user_id == Auth::id()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'You cannot change your own role'
+                ], 403);
+            }
 
             $user = User::findOrFail($request->user_id);
             $role = Role::findOrFail($request->role_id);
@@ -73,6 +82,14 @@ class UserRoleController extends Controller
             $request->validate([
                 'user_id' => 'required|exists:users,id'
             ]);
+
+            // Prevent admin from removing their own role
+            if ($request->user_id == Auth::id()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'You cannot remove your own role'
+                ], 403);
+            }
 
             $user = User::findOrFail($request->user_id);
 

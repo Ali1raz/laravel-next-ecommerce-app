@@ -233,6 +233,32 @@ export class ApiService {
     return this.delete(`/seller/products/${id}`);
   }
 
+  // Admin Product Management
+  static async createAdminProduct(data: {
+    title: string;
+    description: string;
+    price: number;
+    quantity: number;
+  }): Promise<Product> {
+    return this.post("/admin/products", data);
+  }
+
+  static async updateAdminProduct(
+    id: number,
+    data: {
+      title?: string;
+      description?: string;
+      price?: number;
+      quantity?: number;
+    }
+  ): Promise<Product> {
+    return this.put(`/admin/products/${id}`, data);
+  }
+
+  static async deleteAdminProduct(id: number): Promise<void> {
+    return this.delete(`/admin/products/${id}`);
+  }
+
   // Cart Management
   static async getCart(): Promise<CartItem[]> {
     return this.get("/cart");

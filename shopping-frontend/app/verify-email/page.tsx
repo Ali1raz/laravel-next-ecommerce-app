@@ -77,7 +77,7 @@ export default function VerifyEmailPage() {
     setIsResending(true);
     try {
       const response = await fetch(
-        "http://localhost:8000/api/resend-verification-code",
+        "http://127.0.0.1:8000/api/resend-verification-code",
         {
           method: "POST",
           headers: {

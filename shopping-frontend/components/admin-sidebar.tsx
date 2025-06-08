@@ -11,6 +11,8 @@ import {
   UserCheck,
   Key,
   UserCog,
+  Package,
+  ShoppingCart,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -44,7 +46,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
-import { User } from "@/lib/auth";
+import type { User } from "@/lib/auth";
 
 const data = {
   navMain: [
@@ -52,6 +54,16 @@ const data = {
       title: "Dashboard",
       url: "/admin",
       icon: BarChart3,
+    },
+    {
+      title: "Products",
+      url: "/admin/products",
+      icon: Package,
+    },
+    {
+      title: "Cart",
+      url: "/admin/cart",
+      icon: ShoppingCart,
     },
     {
       title: "User Management",

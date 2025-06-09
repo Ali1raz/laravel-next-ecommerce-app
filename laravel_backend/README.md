@@ -506,6 +506,671 @@ Response (200 OK):
 
 Note: Admins cannot delete their own account. Attempting to do so will result in a 403 Forbidden response.
 
+### Dashboard
+
+#### Admin Dashboard
+
+```http
+GET admin/dashboard
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+Response:
+
+```json
+{
+    "status": "success",
+    "data": {
+        "analytics": {
+            "total_users": 4,
+            "total_roles": 3,
+            "total_permissions": 8,
+            "users_by_role": []
+        },
+        "recent_users": [
+            {
+                "id": 5,
+                "name": "Admin User",
+                "email": "admin@example.com",
+                "email_verified_at": "2025-06-09T06:16:56.000000Z",
+                "created_at": "2025-06-09T06:16:56.000000Z",
+                "updated_at": "2025-06-09T06:16:56.000000Z",
+                "roles": [
+                    {
+                        "id": 1,
+                        "name": "admin",
+                        "guard_name": "web",
+                        "created_at": "2025-06-09T06:16:55.000000Z",
+                        "updated_at": "2025-06-09T06:16:55.000000Z",
+                        "pivot": {
+                            "user_id": 5,
+                            "role_id": 1
+                        }
+                    }
+                ]
+            },
+            {
+                "id": 4,
+                "name": "Ali Raza",
+                "email": "ali-new@gmail.com",
+                "email_verified_at": "2025-06-09T03:51:51.000000Z",
+                "created_at": "2025-06-09T03:51:51.000000Z",
+                "updated_at": "2025-06-09T03:53:57.000000Z",
+                "roles": []
+            },
+            {
+                "id": 3,
+                "name": "user 3",
+                "email": "user-3@example.com",
+                "email_verified_at": "2025-06-07T20:26:07.000000Z",
+                "created_at": "2025-06-07T20:26:07.000000Z",
+                "updated_at": "2025-06-08T03:57:28.000000Z",
+                "roles": [
+                    {
+                        "id": 3,
+                        "name": "buyer",
+                        "guard_name": "web",
+                        "created_at": "2025-06-09T06:16:55.000000Z",
+                        "updated_at": "2025-06-09T06:16:55.000000Z",
+                        "pivot": {
+                            "user_id": 3,
+                            "role_id": 3
+                        }
+                    }
+                ]
+            },
+            {
+                "id": 2,
+                "name": "seller name",
+                "email": "seller@gmail.com",
+                "email_verified_at": "2025-06-07T19:20:25.000000Z",
+                "created_at": "2025-06-07T19:19:46.000000Z",
+                "updated_at": "2025-06-07T21:02:36.000000Z",
+                "roles": [
+                    {
+                        "id": 2,
+                        "name": "seller",
+                        "guard_name": "web",
+                        "created_at": "2025-06-09T06:16:55.000000Z",
+                        "updated_at": "2025-06-09T06:16:55.000000Z",
+                        "pivot": {
+                            "user_id": 2,
+                            "role_id": 2
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}
+```
+
+#### Seller Dashboard
+
+```http
+GET seller/dashbaord
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+Response:
+
+```json
+{
+    "status": "success",
+    "data": {
+        "total_products": 6,
+        "total_sales": "1376.00",
+        "total_orders": 0,
+        "recent_orders": [
+            {
+                "id": 6,
+                "user_id": 3,
+                "total_amount": "32.00",
+                "created_at": "2025-06-09T04:07:28.000000Z",
+                "updated_at": "2025-06-09T04:07:28.000000Z",
+                "status": "pending",
+                "items": [
+                    {
+                        "id": 10,
+                        "bill_id": 6,
+                        "product_id": 2,
+                        "quantity": 1,
+                        "price_at_time": "12.00",
+                        "created_at": "2025-06-09T04:07:28.000000Z",
+                        "updated_at": "2025-06-09T04:07:28.000000Z",
+                        "product": {
+                            "id": 2,
+                            "title": "he he he",
+                            "description": "very long description of this product, ok !!",
+                            "price": "12.00",
+                            "quantity": 10,
+                            "seller_id": 2,
+                            "created_at": "2025-06-07T21:00:01.000000Z",
+                            "updated_at": "2025-06-09T04:07:28.000000Z"
+                        }
+                    },
+                    {
+                        "id": 11,
+                        "bill_id": 6,
+                        "product_id": 1,
+                        "quantity": 2,
+                        "price_at_time": "10.00",
+                        "created_at": "2025-06-09T04:07:28.000000Z",
+                        "updated_at": "2025-06-09T04:07:28.000000Z",
+                        "product": {
+                            "id": 1,
+                            "title": "product",
+                            "description": "long description",
+                            "price": "10.00",
+                            "quantity": 0,
+                            "seller_id": 2,
+                            "created_at": "2025-06-07T19:47:17.000000Z",
+                            "updated_at": "2025-06-09T04:07:28.000000Z"
+                        }
+                    }
+                ],
+                "user": {
+                    "id": 3,
+                    "name": "user 3",
+                    "email": "user-3@example.com",
+                    "email_verified_at": "2025-06-07T20:26:07.000000Z",
+                    "created_at": "2025-06-07T20:26:07.000000Z",
+                    "updated_at": "2025-06-08T03:57:28.000000Z"
+                }
+            },
+            {
+                "id": 3,
+                "user_id": 3,
+                "total_amount": "60.00",
+                "created_at": "2025-06-08T03:58:45.000000Z",
+                "updated_at": "2025-06-08T03:58:45.000000Z",
+                "status": "pending",
+                "items": [
+                    {
+                        "id": 5,
+                        "bill_id": 3,
+                        "product_id": 1,
+                        "quantity": 6,
+                        "price_at_time": "10.00",
+                        "created_at": "2025-06-08T03:58:45.000000Z",
+                        "updated_at": "2025-06-08T03:58:45.000000Z",
+                        "product": {
+                            "id": 1,
+                            "title": "product",
+                            "description": "long description",
+                            "price": "10.00",
+                            "quantity": 0,
+                            "seller_id": 2,
+                            "created_at": "2025-06-07T19:47:17.000000Z",
+                            "updated_at": "2025-06-09T04:07:28.000000Z"
+                        }
+                    }
+                ],
+                "user": {
+                    "id": 3,
+                    "name": "User 3",
+                    "email": "user-3@example.com",
+                    "email_verified_at": "2025-06-07T20:26:07.000000Z",
+                    "created_at": "2025-06-07T20:26:07.000000Z",
+                    "updated_at": "2025-06-08T03:57:28.000000Z"
+                }
+            },
+            {
+                "id": 2,
+                "user_id": 3,
+                "total_amount": "1264.00",
+                "created_at": "2025-06-07T21:25:54.000000Z",
+                "updated_at": "2025-06-07T21:25:54.000000Z",
+                "status": "pending",
+                "items": [
+                    {
+                        "id": 2,
+                        "bill_id": 2,
+                        "product_id": 5,
+                        "quantity": 4,
+                        "price_at_time": "10.00",
+                        "created_at": "2025-06-07T21:25:54.000000Z",
+                        "updated_at": "2025-06-07T21:25:54.000000Z",
+                        "product": {
+                            "id": 5,
+                            "title": "neon db",
+                            "description": "database to consider, for postgreSQL",
+                            "price": "10.00",
+                            "quantity": 7,
+                            "seller_id": 2,
+                            "created_at": "2025-06-07T21:17:39.000000Z",
+                            "updated_at": "2025-06-08T16:19:04.000000Z"
+                        }
+                    },
+                    {
+                        "id": 3,
+                        "bill_id": 2,
+                        "product_id": 2,
+                        "quantity": 1,
+                        "price_at_time": "12.00",
+                        "created_at": "2025-06-07T21:25:54.000000Z",
+                        "updated_at": "2025-06-07T21:25:54.000000Z",
+                        "product": {
+                            "id": 2,
+                            "title": "he he he",
+                            "description": "very long description of this product, ok !!",
+                            "price": "12.00",
+                            "quantity": 10,
+                            "seller_id": 2,
+                            "created_at": "2025-06-07T21:00:01.000000Z",
+                            "updated_at": "2025-06-09T04:07:28.000000Z"
+                        }
+                    },
+                    {
+                        "id": 4,
+                        "bill_id": 2,
+                        "product_id": 4,
+                        "quantity": 1,
+                        "price_at_time": "1212.00",
+                        "created_at": "2025-06-07T21:25:54.000000Z",
+                        "updated_at": "2025-06-07T21:25:54.000000Z",
+                        "product": {
+                            "id": 4,
+                            "title": "laptop",
+                            "description": "descr...",
+                            "price": "1212.00",
+                            "quantity": 10,
+                            "seller_id": 2,
+                            "created_at": "2025-06-07T21:16:45.000000Z",
+                            "updated_at": "2025-06-08T16:19:04.000000Z"
+                        }
+                    }
+                ],
+                "user": {
+                    "id": 3,
+                    "name": "User 3",
+                    "email": "user-3@example.com",
+                    "email_verified_at": "2025-06-07T20:26:07.000000Z",
+                    "created_at": "2025-06-07T20:26:07.000000Z",
+                    "updated_at": "2025-06-08T03:57:28.000000Z"
+                }
+            },
+            {
+                "id": 1,
+                "user_id": 3,
+                "total_amount": "20.00",
+                "created_at": "2025-06-07T20:34:00.000000Z",
+                "updated_at": "2025-06-07T20:34:00.000000Z",
+                "status": "pending",
+                "items": [
+                    {
+                        "id": 1,
+                        "bill_id": 1,
+                        "product_id": 1,
+                        "quantity": 2,
+                        "price_at_time": "10.00",
+                        "created_at": "2025-06-07T20:34:00.000000Z",
+                        "updated_at": "2025-06-07T20:34:00.000000Z",
+                        "product": {
+                            "id": 1,
+                            "title": "product",
+                            "description": "description",
+                            "price": "10.00",
+                            "quantity": 0,
+                            "seller_id": 2,
+                            "created_at": "2025-06-07T19:47:17.000000Z",
+                            "updated_at": "2025-06-09T04:07:28.000000Z"
+                        }
+                    }
+                ],
+                "user": {
+                    "id": 3,
+                    "name": "User 3",
+                    "email": "user-3@example.com",
+                    "email_verified_at": "2025-06-07T20:26:07.000000Z",
+                    "created_at": "2025-06-07T20:26:07.000000Z",
+                    "updated_at": "2025-06-08T03:57:28.000000Z"
+                }
+            }
+        ],
+        "top_selling_products": [],
+        "low_stock_products": []
+    }
+}
+```
+
+#### Buyer Dashboard
+
+```http
+GET buyer/dashboard
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+response:
+
+```json
+{
+    "status": "success",
+    "data": {
+        "cart_items_count": 0,
+        "total_spent": 0,
+        "recent_orders": [
+            {
+                "id": 6,
+                "user_id": 3,
+                "total_amount": "32.00",
+                "created_at": "2025-06-09T04:07:28.000000Z",
+                "updated_at": "2025-06-09T04:07:28.000000Z",
+                "status": "pending",
+                "items": [
+                    {
+                        "id": 10,
+                        "bill_id": 6,
+                        "product_id": 2,
+                        "quantity": 1,
+                        "price_at_time": "12.00",
+                        "created_at": "2025-06-09T04:07:28.000000Z",
+                        "updated_at": "2025-06-09T04:07:28.000000Z",
+                        "product": {
+                            "id": 2,
+                            "title": "he he he",
+                            "description": "very long description of this product, ok !!",
+                            "price": "12.00",
+                            "quantity": 10,
+                            "seller_id": 2,
+                            "created_at": "2025-06-07T21:00:01.000000Z",
+                            "updated_at": "2025-06-09T04:07:28.000000Z",
+                            "seller": {
+                                "id": 2,
+                                "name": "user 3",
+                                "email": "user-3@example.com",
+                                "email_verified_at": "2025-06-07T19:20:25.000000Z",
+                                "created_at": "2025-06-07T19:19:46.000000Z",
+                                "updated_at": "2025-06-07T21:02:36.000000Z"
+                            }
+                        }
+                    },
+                    {
+                        "id": 11,
+                        "bill_id": 6,
+                        "product_id": 1,
+                        "quantity": 2,
+                        "price_at_time": "10.00",
+                        "created_at": "2025-06-09T04:07:28.000000Z",
+                        "updated_at": "2025-06-09T04:07:28.000000Z",
+                        "product": {
+                            "id": 1,
+                            "title": "product",
+                            "description": "long description",
+                            "price": "10.00",
+                            "quantity": 0,
+                            "seller_id": 2,
+                            "created_at": "2025-06-07T19:47:17.000000Z",
+                            "updated_at": "2025-06-09T04:07:28.000000Z",
+                            "seller": {
+                                "id": 2,
+                                "name": "user 3",
+                                "email": "user-3@example.com",
+                                "email_verified_at": "2025-06-07T19:20:25.000000Z",
+                                "created_at": "2025-06-07T19:19:46.000000Z",
+                                "updated_at": "2025-06-07T21:02:36.000000Z"
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "id": 3,
+                "user_id": 3,
+                "total_amount": "60.00",
+                "created_at": "2025-06-08T03:58:45.000000Z",
+                "updated_at": "2025-06-08T03:58:45.000000Z",
+                "status": "pending",
+                "items": [
+                    {
+                        "id": 5,
+                        "bill_id": 3,
+                        "product_id": 1,
+                        "quantity": 6,
+                        "price_at_time": "10.00",
+                        "created_at": "2025-06-08T03:58:45.000000Z",
+                        "updated_at": "2025-06-08T03:58:45.000000Z",
+                        "product": {
+                            "id": 1,
+                            "title": "product",
+                            "description": "long description",
+                            "price": "10.00",
+                            "quantity": 0,
+                            "seller_id": 2,
+                            "created_at": "2025-06-07T19:47:17.000000Z",
+                            "updated_at": "2025-06-09T04:07:28.000000Z",
+                            "seller": {
+                                "id": 2,
+                                "name": "user 3",
+                                "email": "user-3@example.com",
+                                "email_verified_at": "2025-06-07T19:20:25.000000Z",
+                                "created_at": "2025-06-07T19:19:46.000000Z",
+                                "updated_at": "2025-06-07T21:02:36.000000Z"
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "id": 2,
+                "user_id": 3,
+                "total_amount": "1264.00",
+                "created_at": "2025-06-07T21:25:54.000000Z",
+                "updated_at": "2025-06-07T21:25:54.000000Z",
+                "status": "pending",
+                "items": [
+                    {
+                        "id": 2,
+                        "bill_id": 2,
+                        "product_id": 5,
+                        "quantity": 4,
+                        "price_at_time": "10.00",
+                        "created_at": "2025-06-07T21:25:54.000000Z",
+                        "updated_at": "2025-06-07T21:25:54.000000Z",
+                        "product": {
+                            "id": 5,
+                            "title": "neon db",
+                            "description": "database to consider, for postgreSQL",
+                            "price": "10.00",
+                            "quantity": 7,
+                            "seller_id": 2,
+                            "created_at": "2025-06-07T21:17:39.000000Z",
+                            "updated_at": "2025-06-08T16:19:04.000000Z",
+                            "seller": {
+                                "id": 2,
+                                "name": "user 3",
+                                "email": "user-3@example.com",
+                                "email_verified_at": "2025-06-07T19:20:25.000000Z",
+                                "created_at": "2025-06-07T19:19:46.000000Z",
+                                "updated_at": "2025-06-07T21:02:36.000000Z"
+                            }
+                        }
+                    },
+                    {
+                        "id": 3,
+                        "bill_id": 2,
+                        "product_id": 2,
+                        "quantity": 1,
+                        "price_at_time": "12.00",
+                        "created_at": "2025-06-07T21:25:54.000000Z",
+                        "updated_at": "2025-06-07T21:25:54.000000Z",
+                        "product": {
+                            "id": 2,
+                            "title": "he he he",
+                            "description": "very long description of this product, ok !!",
+                            "price": "12.00",
+                            "quantity": 10,
+                            "seller_id": 2,
+                            "created_at": "2025-06-07T21:00:01.000000Z",
+                            "updated_at": "2025-06-09T04:07:28.000000Z",
+                            "seller": {
+                                "id": 2,
+                                "name": "user 3",
+                                "email": "user-3@example.com",
+                                "email_verified_at": "2025-06-07T19:20:25.000000Z",
+                                "created_at": "2025-06-07T19:19:46.000000Z",
+                                "updated_at": "2025-06-07T21:02:36.000000Z"
+                            }
+                        }
+                    },
+                    {
+                        "id": 4,
+                        "bill_id": 2,
+                        "product_id": 4,
+                        "quantity": 1,
+                        "price_at_time": "1212.00",
+                        "created_at": "2025-06-07T21:25:54.000000Z",
+                        "updated_at": "2025-06-07T21:25:54.000000Z",
+                        "product": {
+                            "id": 4,
+                            "title": "laptop",
+                            "description": "my god",
+                            "price": "1212.00",
+                            "quantity": 10,
+                            "seller_id": 2,
+                            "created_at": "2025-06-07T21:16:45.000000Z",
+                            "updated_at": "2025-06-08T16:19:04.000000Z",
+                            "seller": {
+                                "id": 2,
+                                "name": "user 3",
+                                "email": "user-3@example.com",
+                                "email_verified_at": "2025-06-07T19:20:25.000000Z",
+                                "created_at": "2025-06-07T19:19:46.000000Z",
+                                "updated_at": "2025-06-07T21:02:36.000000Z"
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "id": 1,
+                "user_id": 3,
+                "total_amount": "20.00",
+                "created_at": "2025-06-07T20:34:00.000000Z",
+                "updated_at": "2025-06-07T20:34:00.000000Z",
+                "status": "pending",
+                "items": [
+                    {
+                        "id": 1,
+                        "bill_id": 1,
+                        "product_id": 1,
+                        "quantity": 2,
+                        "price_at_time": "10.00",
+                        "created_at": "2025-06-07T20:34:00.000000Z",
+                        "updated_at": "2025-06-07T20:34:00.000000Z",
+                        "product": {
+                            "id": 1,
+                            "title": "product",
+                            "description": "long description",
+                            "price": "10.00",
+                            "quantity": 0,
+                            "seller_id": 2,
+                            "created_at": "2025-06-07T19:47:17.000000Z",
+                            "updated_at": "2025-06-09T04:07:28.000000Z",
+                            "seller": {
+                                "id": 2,
+                                "name": "user 3",
+                                "email": "user-3@example.com",
+                                "email_verified_at": "2025-06-07T19:20:25.000000Z",
+                                "created_at": "2025-06-07T19:19:46.000000Z",
+                                "updated_at": "2025-06-07T21:02:36.000000Z"
+                            }
+                        }
+                    }
+                ]
+            }
+        ],
+        "favorite_products": [],
+        "recommended_products": []
+    }
+}
+```
+
+### User Role Management
+
+#### Assign Role to User
+
+```http
+POST /admin/users/assign-role
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+```json
+{
+    "user_id": 1,
+    "role_id": 1
+}
+```
+
+Response (200 OK):
+
+```json
+{
+    "status": "success",
+    "message": "Role assigned to user successfully"
+}
+```
+
+Validation Rules:
+
+user_id: required, exists in users table
+role_id: required, exists in roles table
+
+### Remove Role from User
+
+```http
+POST /admin/users/remove-role
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+``json
+{
+"user_id": 1
+}
+
+````
+Response (200 OK):
+```json
+{
+    "status": "success",
+    "message": "Role removed from user successfully"
+}
+````
+
+Validation Rules:
+
+user_id: required, exists in users table
+
+#### Get User's Role
+
+```
+GET /admin/users/{userId}/role
+Authorization: Bearer {token}
+```
+
+Response (200 OK):
+
+```json
+{
+    "status": "success",
+    "data": {
+        "id": 1,
+        "name": "admin",
+        "permissions": [
+            {
+                "id": 1,
+                "name": "manage-users"
+            }
+        ]
+    }
+}
+```
+
 ### Products
 
 Note:

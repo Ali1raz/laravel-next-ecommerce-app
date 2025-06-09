@@ -33,8 +33,7 @@ class ProductController extends Controller
                 'title' => 'required|string|max:255',
                 'description' => 'required|string',
                 'price' => 'required|numeric|min:1',
-                'quantity' => 'required|integer|min:1',
-                'seller_id' => 'required|exists:users,id'
+                'quantity' => 'required|integer|min:1'
             ]);
 
             $product = Product::create([
@@ -42,7 +41,7 @@ class ProductController extends Controller
                 'description' => $validated['description'],
                 'price' => $validated['price'],
                 'quantity' => $validated['quantity'],
-                'seller_id' => $validated['seller_id']
+                'seller_id' => Auth::id()
             ]);
 
             return response()->json([

@@ -18,9 +18,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { ApiService, type Product } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { ShoppingCart, Loader2, User } from "lucide-react";
+import {
+  ShoppingCart,
+  Loader2,
+  User,
+  Star,
+  Shield,
+  Truck,
+  RotateCcw,
+} from "lucide-react";
 
 interface ProductModalProps {
   product: Product;
@@ -85,112 +94,135 @@ export function ProductModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle className="text-xl">{product.title}</DialogTitle>
-          <DialogDescription className="flex items-center gap-2">
-            <span>Sold by</span>
-            <span className="flex items-center text-foreground">
-              <User className="h-3 w-3 mr-1" />
+      <DialogContent className="sm:max-w-2xl max-w-3xl max-h-[65vh] overflow-y-auto bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/95 p-3 sm:p-6">
+        <DialogHeader className="space-y-1 sm:space-y-3">
+          <DialogTitle className="text-base sm:text-xl font-bold leading-tight pr-8 line-clamp-2">
+            {product.title}
+          </DialogTitle>
+          <DialogDescription className="flex items-center gap-2 text-xs sm:text-base">
+            <span className="flex items-center text-foreground font-medium">
+              <User className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
               {product.seller.name}
             </span>
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="aspect-square relative">
-            <Image
-              src={`/placeholder.svg?height=400&width=400&text=${encodeURIComponent(
-                product.title
-              )}`}
-              alt={product.title}
-              fill
-              className="object-cover rounded-md"
-            />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6 mt-2 sm:mt-4">
+          {/* Left Column - Image and Features */}
+          {/* Product Image */}
+          <div className="aspect-square relative rounded-lg overflow-hidden bg-muted">
+            <div className="absolute inset-0 bg-gradient-to-br from-gray-600 to-gray-800"></div>
+            <div className="absolute inset-0 flex items-center justify-center text-white text-sm sm:text-lg font-medium px-2 text-center">
+              {product.title}
+            </div>
           </div>
 
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-medium text-lg">{product.title}</h3>
-              <p className="text-muted-foreground mt-1">
+          {/* Right Column - Product Details */}
+          <div className="space-y-3 sm:space-y-6">
+            <div className="flex items-center justify-between">
+              <span className="text-xl sm:text-3xl font-bold text-primary">
+                ${formatPrice(product.price)}
+              </span>
+              <Badge
+                variant={stockStatus.variant}
+                className="text-xs sm:text-sm px-2 sm:px-3 py-0.5 sm:py-1"
+              >
+                {stockStatus.label}
+              </Badge>
+            </div>
+
+            <Separator className="my-2 sm:my-3" />
+
+            <div className="space-y-2 sm:space-y-3">
+              <h4 className="font-semibold text-sm sm:text-base">
+                Description
+              </h4>
+              <p className="text-xs sm:text-base text-muted-foreground leading-relaxed line-clamp-3 sm:line-clamp-none">
                 {product.description}
               </p>
             </div>
 
-            <div className="flex items-center justify-between">
-              <span className="text-2xl font-bold">
-                ${formatPrice(product.price)}
-              </span>
-              <Badge variant={stockStatus.variant}>{stockStatus.label}</Badge>
-            </div>
-
             {product.quantity > 0 && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">Quantity:</span>
-                  <Select
-                    value={quantity}
-                    onValueChange={setQuantity}
-                    disabled={isAddingToCart}
-                  >
-                    <SelectTrigger className="w-24">
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: maxQuantity }, (_, i) => i + 1).map(
-                        (num) => (
-                          <SelectItem key={num} value={num.toString()}>
-                            {num}
-                          </SelectItem>
-                        )
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <span className="text-xs text-muted-foreground">
-                    {product.quantity} available
-                  </span>
-                </div>
+              <>
+                <Separator className="my-2 sm:my-3" />
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                    <div className="space-y-1 sm:space-y-2 flex-1">
+                      <label className="text-xs sm:text-sm font-medium">
+                        Quantity
+                      </label>
+                      <Select
+                        value={quantity}
+                        onValueChange={setQuantity}
+                        disabled={isAddingToCart}
+                      >
+                        <SelectTrigger className="w-full sm:w-24 h-8 sm:h-10">
+                          <SelectValue placeholder="1" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from(
+                            { length: maxQuantity },
+                            (_, i) => i + 1
+                          ).map((num) => (
+                            <SelectItem key={num} value={num.toString()}>
+                              {num}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="text-xs sm:text-sm text-muted-foreground">
+                      {product.quantity} available
+                    </div>
+                  </div>
 
-                <Button
-                  className="w-full"
-                  onClick={handleAddToCart}
-                  disabled={isAddingToCart || product.quantity <= 0}
-                >
-                  {isAddingToCart ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Adding to Cart...
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingCart className="mr-2 h-4 w-4" />
-                      Add to Cart
-                    </>
-                  )}
-                </Button>
-              </div>
+                  <Button
+                    className="w-full h-9 sm:h-12 text-sm sm:text-base font-medium"
+                    onClick={handleAddToCart}
+                    disabled={isAddingToCart || product.quantity <= 0}
+                  >
+                    {isAddingToCart ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                        Adding...
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingCart className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                        Add to Cart • $
+                        {(
+                          Number.parseFloat(formatPrice(product.price)) *
+                          Number.parseInt(quantity)
+                        ).toFixed(2)}
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </>
             )}
 
-            <div className="pt-4 border-t">
-              <h4 className="font-medium mb-2">Product Details</h4>
-              <ul className="space-y-1 text-sm">
-                <li className="flex justify-between">
-                  <span className="text-muted-foreground">Price:</span>
-                  <span>${formatPrice(product.price)}</span>
-                </li>
-                <li className="flex justify-between">
-                  <span className="text-muted-foreground">Availability:</span>
-                  <span>
-                    {product.quantity > 0
-                      ? `${product.quantity} in stock`
-                      : "Out of stock"}
-                  </span>
-                </li>
-                <li className="flex justify-between">
-                  <span className="text-muted-foreground">Seller:</span>
-                  <span>{product.seller.name}</span>
-                </li>
-              </ul>
+            <Separator className="my-2 sm:my-3" />
+
+            <h4 className="font-semibold text-base">Product Information</h4>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Price:</span>
+                <span className="font-medium">
+                  ${formatPrice(product.price)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Availability:</span>
+                <span className="font-medium">
+                  {product.quantity > 0
+                    ? `${product.quantity} in stock`
+                    : "Out of stock"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Seller:</span>
+                <span className="font-medium">{product.seller.name}</span>
+              </div>
             </div>
           </div>
         </div>

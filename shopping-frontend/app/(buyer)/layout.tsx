@@ -4,11 +4,10 @@ import type React from "react";
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { BuyerFooter } from "@/components/buyer-footer";
 import { useRBAC } from "@/hooks/use-rbac";
 import { LoadingSkeleton } from "@/components/loading-skeleton";
 import { Toaster } from "@/components/ui/sonner";
-import { BuyerHeader } from "@/components/buyer-header";
-import { BuyerFooter } from "@/components/buyer-footer";
 
 export default function BuyerLayout({
   children,
@@ -27,7 +26,6 @@ export default function BuyerLayout({
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <BuyerHeader />
         <main className="container py-8">
           <LoadingSkeleton type="dashboard" />
         </main>
@@ -41,9 +39,8 @@ export default function BuyerLayout({
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <BuyerHeader />
-      <main className="flex-1 container py-8">{children}</main>
+    <div className="min-h-screen bg-background">
+      <main className="">{children}</main>
       <BuyerFooter />
       <Toaster />
     </div>

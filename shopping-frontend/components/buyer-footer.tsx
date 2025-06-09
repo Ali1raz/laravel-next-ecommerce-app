@@ -1,60 +1,75 @@
+"use client";
+
 import Link from "next/link";
 import {
   ShoppingCart,
-  Facebook,
-  Twitter,
-  Instagram,
   Mail,
   Phone,
   MapPin,
+  Facebook,
+  Twitter,
+  Instagram,
+  Github,
 } from "lucide-react";
 
 export function BuyerFooter() {
   return (
-    <footer className="bg-background border-t">
-      <div className="container py-10">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="space-y-3">
+    <footer className="bg-muted/30 border-t mt-16">
+      <div className="container px-4 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {/* Brand */}
+          <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <ShoppingCart className="h-6 w-6" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <ShoppingCart className="h-4 w-4" />
+              </div>
               <span className="text-xl font-bold">ShopApp</span>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Your one-stop shop for all your shopping needs. Quality products,
-              competitive prices, and excellent customer service.
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Your trusted online shopping destination. Discover amazing
+              products from verified sellers with secure payments and fast
+              delivery.
             </p>
-            <div className="flex items-center gap-4 pt-2">
+            <div className="flex space-x-4">
               <Link
                 href="#"
-                className="text-muted-foreground hover:text-primary"
+                className="text-muted-foreground hover:text-primary transition-colors"
+                aria-label="Facebook"
               >
                 <Facebook className="h-5 w-5" />
-                <span className="sr-only">Facebook</span>
               </Link>
               <Link
                 href="#"
-                className="text-muted-foreground hover:text-primary"
+                className="text-muted-foreground hover:text-primary transition-colors"
+                aria-label="Twitter"
               >
                 <Twitter className="h-5 w-5" />
-                <span className="sr-only">Twitter</span>
               </Link>
               <Link
                 href="#"
-                className="text-muted-foreground hover:text-primary"
+                className="text-muted-foreground hover:text-primary transition-colors"
+                aria-label="Instagram"
               >
                 <Instagram className="h-5 w-5" />
-                <span className="sr-only">Instagram</span>
+              </Link>
+              <Link
+                href="#"
+                className="text-muted-foreground hover:text-primary transition-colors"
+                aria-label="GitHub"
+              >
+                <Github className="h-5 w-5" />
               </Link>
             </div>
           </div>
 
-          <div>
-            <h3 className="font-medium text-lg mb-3">Quick Links</h3>
-            <ul className="space-y-2">
+          {/* Quick Links */}
+          <div className="space-y-4">
+            <h3 className="font-semibold">Quick Links</h3>
+            <ul className="space-y-2 text-sm">
               <li>
                 <Link
                   href="/buyer"
-                  className="text-sm text-muted-foreground hover:text-primary"
+                  className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   Home
                 </Link>
@@ -62,7 +77,7 @@ export function BuyerFooter() {
               <li>
                 <Link
                   href="/buyer/products"
-                  className="text-sm text-muted-foreground hover:text-primary"
+                  className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   Products
                 </Link>
@@ -70,7 +85,7 @@ export function BuyerFooter() {
               <li>
                 <Link
                   href="/buyer/orders"
-                  className="text-sm text-muted-foreground hover:text-primary"
+                  className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   My Orders
                 </Link>
@@ -78,87 +93,111 @@ export function BuyerFooter() {
               <li>
                 <Link
                   href="/buyer/wishlist"
-                  className="text-sm text-muted-foreground hover:text-primary"
+                  className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   Wishlist
                 </Link>
               </li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="font-medium text-lg mb-3">Customer Service</h3>
-            <ul className="space-y-2">
               <li>
                 <Link
-                  href="#"
-                  className="text-sm text-muted-foreground hover:text-primary"
+                  href="/buyer/profile"
+                  className="text-muted-foreground hover:text-primary transition-colors"
                 >
-                  Contact Us
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-sm text-muted-foreground hover:text-primary"
-                >
-                  FAQs
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-sm text-muted-foreground hover:text-primary"
-                >
-                  Shipping Policy
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-sm text-muted-foreground hover:text-primary"
-                >
-                  Return Policy
+                  Profile
                 </Link>
               </li>
             </ul>
           </div>
 
-          <div>
-            <h3 className="font-medium text-lg mb-3">Contact Info</h3>
-            <ul className="space-y-2">
-              <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                <MapPin className="h-4 w-4" />
-                <span>123 Shopping Street, City, Country</span>
+          {/* Customer Service */}
+          <div className="space-y-4">
+            <h3 className="font-semibold">Customer Service</h3>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link
+                  href="#"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Help Center
+                </Link>
               </li>
-              <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Phone className="h-4 w-4" />
-                <span>+1 234 567 890</span>
+              <li>
+                <Link
+                  href="#"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Shipping Info
+                </Link>
               </li>
-              <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Mail className="h-4 w-4" />
+              <li>
+                <Link
+                  href="#"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Returns & Exchanges
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="#"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Size Guide
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="#"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Track Your Order
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Contact Info */}
+          <div className="space-y-4">
+            <h3 className="font-semibold">Contact Us</h3>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Mail className="h-4 w-4 flex-shrink-0" />
                 <span>support@shopapp.com</span>
-              </li>
-            </ul>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Phone className="h-4 w-4 flex-shrink-0" />
+                <span>+1 (555) 123-4567</span>
+              </div>
+              <div className="flex items-start gap-2 text-muted-foreground">
+                <MapPin className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                <span>123 Shopping Street, Commerce City, CC 12345</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="border-t mt-8 pt-6 flex flex-col md:flex-row justify-between items-center">
+        <div className="border-t mt-8 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} ShopApp. All rights reserved.
+            © 2024 ShopApp. All rights reserved.
           </p>
-          <div className="flex items-center gap-4 mt-4 md:mt-0">
+          <div className="flex gap-6 text-sm">
             <Link
               href="#"
-              className="text-sm text-muted-foreground hover:text-primary"
+              className="text-muted-foreground hover:text-primary transition-colors"
             >
               Privacy Policy
             </Link>
             <Link
               href="#"
-              className="text-sm text-muted-foreground hover:text-primary"
+              className="text-muted-foreground hover:text-primary transition-colors"
             >
               Terms of Service
+            </Link>
+            <Link
+              href="#"
+              className="text-muted-foreground hover:text-primary transition-colors"
+            >
+              Cookie Policy
             </Link>
           </div>
         </div>

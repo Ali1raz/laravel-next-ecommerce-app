@@ -247,6 +247,265 @@ Request:
 }
 ```
 
+### Users
+
+#### List Users
+
+```
+GET /admin/users
+Authorization: Bearer {token}
+```
+
+Response
+
+```json
+{
+    "status": "success",
+    "data": {
+        "current_page": 1,
+        "data": [
+            {
+                "id": 1,
+                "name": "Admin User",
+                "email": "admin@example.com",
+                "email_verified_at": "2025-06-07T19:08:28.000000Z",
+                "created_at": "2025-06-07T19:08:28.000000Z",
+                "updated_at": "2025-06-07T19:08:28.000000Z",
+                "roles": [
+                    {
+                        "id": 1,
+                        "name": "admin",
+                        "guard_name": "web",
+                        "created_at": "2025-06-07T19:08:27.000000Z",
+                        "updated_at": "2025-06-07T19:08:27.000000Z",
+                        "pivot": {
+                            "model_type": "App\\Models\\User",
+                            "model_id": 1,
+                            "role_id": 1
+                        }
+                    }
+                ]
+            },
+            {
+                "id": 2,
+                "name": "users",
+                "email": "user2@gmail.com",
+                "email_verified_at": "2025-06-07T19:20:25.000000Z",
+                "created_at": "2025-06-07T19:19:46.000000Z",
+                "updated_at": "2025-06-07T21:02:36.000000Z",
+                "roles": [
+                    {
+                        "id": 2,
+                        "name": "seller",
+                        "guard_name": "web",
+                        "created_at": "2025-06-07T19:08:27.000000Z",
+                        "updated_at": "2025-06-07T19:08:27.000000Z",
+                        "pivot": {
+                            "model_type": "App\\Models\\User",
+                            "model_id": 2,
+                            "role_id": 2
+                        }
+                    }
+                ]
+            },
+            {
+                "id": 3,
+                "name": "User 3",
+                "email": "user3@example.com",
+                "email_verified_at": "2025-06-07T20:26:07.000000Z",
+                "created_at": "2025-06-07T20:26:07.000000Z",
+                "updated_at": "2025-06-08T03:57:28.000000Z",
+                "roles": [
+                    {
+                        "id": 3,
+                        "name": "buyer",
+                        "guard_name": "web",
+                        "created_at": "2025-06-07T19:08:27.000000Z",
+                        "updated_at": "2025-06-07T19:08:27.000000Z",
+                        "pivot": {
+                            "model_type": "App\\Models\\User",
+                            "model_id": 3,
+                            "role_id": 3
+                        }
+                    }
+                ]
+            }
+        ],
+        "first_page_url": "http://127.0.0.1:8000/api/admin/users?page=1",
+        "from": 1,
+        "last_page": 1,
+        "last_page_url": "http://127.0.0.1:8000/api/admin/users?page=1",
+        "links": [
+            {
+                "url": null,
+                "label": "&laquo; Previous",
+                "active": false
+            },
+            {
+                "url": "http://127.0.0.1:8000/api/admin/users?page=1",
+                "label": "1",
+                "active": true
+            },
+            {
+                "url": null,
+                "label": "Next &raquo;",
+                "active": false
+            }
+        ],
+        "next_page_url": null,
+        "path": "http://127.0.0.1:8000/api/admin/users",
+        "per_page": 10,
+        "prev_page_url": null,
+        "to": 3,
+        "total": 3
+    }
+}
+```
+
+#### Add User
+
+```http
+POST /admin/users
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+Request:
+
+```json
+{
+    "name": "Ali Raza",
+    "email": "ali@gmail.com",
+    "password": "12345678",
+    "password_confirmation": "12345678",
+    "role": "buyer"
+}
+```
+
+Response:
+
+```json
+{
+    "status": "success",
+    "message": "User created successfully",
+    "data": {
+        "name": "Ali Raza",
+        "email": "ali@gmail.com",
+        "email_verified_at": "2025-06-09T03:51:51.000000Z",
+        "updated_at": "2025-06-09T03:51:51.000000Z",
+        "created_at": "2025-06-09T03:51:51.000000Z",
+        "id": 4,
+        "roles": [
+            {
+                "id": 3,
+                "name": "buyer",
+                "guard_name": "web",
+                "created_at": "2025-06-07T19:08:27.000000Z",
+                "updated_at": "2025-06-07T19:08:27.000000Z",
+                "pivot": {
+                    "model_type": "App\\Models\\User",
+                    "model_id": 4,
+                    "role_id": 3
+                }
+            }
+        ]
+    }
+}
+```
+
+#### Get User
+
+```http
+GET /admin/users/{id}
+Authorization: Bearer {token}
+```
+
+Response (200 OK):
+
+```json
+{
+    "status": "success",
+    "data": {
+        "id": 1,
+        "name": "John Doe",
+        "email": "john@example.com",
+        "email_verified_at": "2024-03-20T10:00:00.000000Z",
+        "roles": [
+            {
+                "id": 1,
+                "name": "buyer"
+            }
+        ]
+    }
+}
+```
+
+#### Update User
+
+```http
+PUT /admin/users/{id}
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+Request:
+
+```json
+{
+    "name": "John Updated",
+    "email": "john.updated@example.com",
+    "password": "new_password",
+    "password_confirmation": "new_password",
+    "role": "seller"
+}
+```
+
+Response (200 OK):
+
+```json
+{
+    "status": "success",
+    "message": "User updated successfully",
+    "data": {
+        "id": 1,
+        "name": "John Updated",
+        "email": "john.updated@example.com",
+        "email_verified_at": "2024-03-20T10:00:00.000000Z",
+        "roles": [
+            {
+                "id": 2,
+                "name": "seller"
+            }
+        ]
+    }
+}
+```
+
+Validation Rules:
+
+-   name: required, string, max 255 characters
+-   email: required, valid email, max 255 characters, unique (except for current user)
+-   password: optional, string, min 8 characters, must be confirmed if provided
+-   role: required, string, exists in roles table
+
+#### Delete User
+
+```http
+DELETE /admin/users/{id}
+Authorization: Bearer {token}
+```
+
+Response (200 OK):
+
+```json
+{
+    "status": "success",
+    "message": "User deleted successfully"
+}
+```
+
+Note: Admins cannot delete their own account. Attempting to do so will result in a 403 Forbidden response.
+
 ### Products
 
 #### List Products
@@ -306,7 +565,8 @@ Response:
 #### Create Product (Admin/Seller only)
 
 ```http
-POST /admin/products
+POST /admin/products OR
+POST /seller/products
 ```
 
 Request:
@@ -323,7 +583,8 @@ Request:
 #### Update Product (Admin/Seller only)
 
 ```http
-PUT /admin/products/{id}
+PUT /admin/products/{id} OR
+PUT /seller/products/{id}
 ```
 
 Request:
@@ -340,7 +601,8 @@ Request:
 #### Delete Product (Admin/Seller only)
 
 ```http
-DELETE /admin/products/{id}
+DELETE /admin/products/{id} OR
+DELETE /seller/products/{id}
 ```
 
 ### Cart

@@ -116,6 +116,14 @@ class CartController extends Controller
 
         $product = Product::findOrFail($request->product_id);
 
+        // Check if user is trying to update their own product
+        if ($product->seller_id === Auth::id()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Cannot update quantity of your own product'
+            ], 403);
+        }
+
         if ($product->quantity < $request->quantity) {
             return response()->json([
                 'status' => 'error',

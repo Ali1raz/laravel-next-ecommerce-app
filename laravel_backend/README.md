@@ -508,7 +508,17 @@ Note: Admins cannot delete their own account. Attempting to do so will result in
 
 ### Products
 
-#### List Products
+Note:
+
+-   buyers can list products, get product,
+-   admins can crud all products
+-   sellers can crud thier own products
+-   Admins can add to cart products from sellers
+-   Sellers can add to cart products from other sellers and admins
+-   Buyers can add to cart products from both admins and sellers
+-   No one can add to cart their own products
+
+#### List Products (Buyer)
 
 ```http
 GET /products
@@ -536,7 +546,7 @@ Response:
 }
 ```
 
-#### Get Product
+#### Get Product (Buyer)
 
 ```http
 GET /products/{id}
@@ -562,14 +572,92 @@ Response:
 }
 ```
 
-#### Create Product (Admin/Seller only)
+#### Create Product (Seller)
 
 ```http
-POST /admin/products OR
 POST /seller/products
 ```
 
 Request:
+
+```json
+{
+    "title": "LED",
+    "description": "Amoled, 32' long description",
+    "price": "10.00",
+    "quantity": 4
+}
+```
+
+Response:
+
+```json
+{
+    "status": "success",
+    "message": "Product created successfully",
+    "data": {
+        "title": "LED",
+        "description": "Amoled, 32' long description",
+        "price": "10.00",
+        "quantity": 4,
+        "seller_id": 2,
+        "updated_at": "2025-06-09T04:52:03.000000Z",
+        "created_at": "2025-06-09T04:52:03.000000Z",
+        "id": 9
+    }
+}
+```
+
+#### Update Product (Seller)
+
+```http
+PUT /seller/products/{id}
+```
+
+Request:
+
+```json
+{
+    "quantity": 7
+}
+```
+
+Response:
+
+```json
+{
+    "status": "success",
+    "message": "Product updated successfully",
+    "data": {
+        "id": 9,
+        "title": "LED",
+        "description": "Amoled, 32' long description",
+        "price": "10.00",
+        "quantity": 7,
+        "seller_id": 2,
+        "created_at": "2025-06-09T04:52:03.000000Z",
+        "updated_at": "2025-06-09T05:13:24.000000Z"
+    }
+}
+```
+
+#### Delete Product (Seller)
+
+```http
+DELETE /seller/products/{id}
+```
+
+#### Admin Product Management
+
+```http
+GET /admin/products
+POST /admin/products
+GET /admin/products/{id}
+PUT /admin/products/{id}
+DELETE /admin/products/{id}
+```
+
+request:
 
 ```json
 {
@@ -580,30 +668,21 @@ Request:
 }
 ```
 
-#### Update Product (Admin/Seller only)
+### Product Management Rules
 
-```http
-PUT /admin/products/{id} OR
-PUT /seller/products/{id}
-```
+1. **Admin**
 
-Request:
+-   Can manage all products of sellers or their own
 
-```json
-{
-    "title": "Updated Product",
-    "description": "Updated description",
-    "price": 89.99,
-    "quantity": 5
-}
-```
+2. **Seller**
 
-#### Delete Product (Admin/Seller only)
+    - Can only manage their own products
+    - Cannot modify other sellers' products
+    - seller_id is automatically set to their account
 
-```http
-DELETE /admin/products/{id} OR
-DELETE /seller/products/{id}
-```
+3. **Buyer**
+    - Can only view available products (quantity > 0)
+    - Cannot modify products
 
 ### Cart
 
@@ -651,6 +730,15 @@ Request:
 }
 ```
 
+response:
+
+```json
+{
+    "status": "success",
+    "message": "Product added to cart successfully"
+}
+```
+
 #### Remove from Cart
 
 ```http
@@ -678,6 +766,21 @@ Request:
     "product_id": 1,
     "quantity": 3
 }
+```
+
+Response:
+
+```json
+{
+    "status": "success",
+    "message": "Cart quantity updated successfully"
+}
+```
+
+#### Checkout
+
+```http
+POST /checkout
 ```
 
 ### Bills
@@ -750,12 +853,6 @@ Response:
         ]
     }
 }
-```
-
-#### Checkout
-
-```http
-POST /checkout
 ```
 
 ## Error Responses

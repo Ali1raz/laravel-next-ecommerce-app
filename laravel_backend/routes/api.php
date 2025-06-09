@@ -12,6 +12,8 @@ use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\BillController;
+use App\Http\Controllers\Api\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Api\Seller\ProductController as SellerProductController;
 
 // 🔁 Health check endpoint
 Route::get('/ping', fn() => response()->json(['message' => 'pong']));
@@ -66,14 +68,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::apiResource('users', UserController::class);
 
         // Product management
-        Route::apiResource('products', ProductController::class);
+        Route::apiResource('products', AdminProductController::class);
     });
 
     Route::prefix('seller')->middleware('role:seller')->group(function () {
         Route::get('/dashboard', fn() => response()->json(['message' => 'Hello Seller']));
 
         // Product management
-        Route::apiResource('products', ProductController::class);
+        Route::apiResource('products', SellerProductController::class);
     });
 
     Route::prefix('buyer')->middleware('role:buyer')->group(function () {

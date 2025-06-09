@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ApiService, type SellerDashboard } from "@/lib/api";
+import { ApiService, type SellerDashboardData } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import {
   Package,
@@ -19,11 +19,13 @@ import {
 } from "lucide-react";
 
 export default function SellerDashboardPage() {
-  const [dashboardData, setDashboardData] = useState<SellerDashboard>({
-    totalProducts: 0,
-    totalOrders: 0,
-    totalRevenue: 0,
-    recentOrders: [],
+  const [dashboardData, setDashboardData] = useState<SellerDashboardData>({
+    total_products: 0,
+    total_sales: 0,
+    total_orders: 0,
+    recent_orders: [],
+    top_selling_products: [],
+    low_stock_products: [],
   });
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -45,10 +47,12 @@ export default function SellerDashboardPage() {
       });
       // Set default data
       setDashboardData({
-        totalProducts: 0,
-        totalOrders: 0,
-        totalRevenue: 0,
-        recentOrders: [],
+        total_products: 0,
+        total_sales: 0,
+        total_orders: 0,
+        recent_orders: [],
+        top_selling_products: [],
+        low_stock_products: [],
       });
     } finally {
       setIsLoading(false);
@@ -94,7 +98,7 @@ export default function SellerDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {dashboardData.totalProducts}
+              {dashboardData.total_products}
             </div>
             <p className="text-xs text-muted-foreground">Active listings</p>
           </CardContent>
@@ -107,7 +111,7 @@ export default function SellerDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {dashboardData.totalOrders}
+              {dashboardData.total_orders}
             </div>
             <p className="text-xs text-muted-foreground">All time orders</p>
           </CardContent>
@@ -120,7 +124,7 @@ export default function SellerDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${Number(dashboardData.totalRevenue || 0).toFixed(2)}
+              ${Number(dashboardData.total_sales || 0).toFixed(2)}
             </div>
             <p className="text-xs text-muted-foreground">All time sales</p>
           </CardContent>

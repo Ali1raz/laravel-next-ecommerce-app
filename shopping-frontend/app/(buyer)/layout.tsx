@@ -2,10 +2,13 @@
 
 import type React from "react";
 
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { BuyerSidebar } from "@/components/buyer-sidebar";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useRBAC } from "@/hooks/use-rbac";
-import { Loader2 } from "lucide-react";
+import { LoadingSkeleton } from "@/components/loading-skeleton";
+import { Toaster } from "@/components/ui/sonner";
+import { BuyerHeader } from "@/components/buyer-header";
+import { BuyerFooter } from "@/components/buyer-footer";
 
 export default function BuyerLayout({
   children,
@@ -13,15 +16,22 @@ export default function BuyerLayout({
   children: React.ReactNode;
 }) {
   const { isAuthorized, isLoading } = useRBAC("buyer");
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthorized) {
+      router.push("/login");
+    }
+  }, [isLoading, isAuthorized, router]);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Loading...</h2>
-          <p className="text-muted-foreground">Checking permissions</p>
-        </div>
+      <div className="min-h-screen bg-background">
+        <BuyerHeader />
+        <main className="container py-8">
+          <LoadingSkeleton type="dashboard" />
+        </main>
+        <Toaster />
       </div>
     );
   }
@@ -31,11 +41,11 @@ export default function BuyerLayout({
   }
 
   return (
-    <SidebarProvider>
-      <BuyerSidebar />
-      <SidebarInset>
-        <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">{children}</div>
-      </SidebarInset>
-    </SidebarProvider>
+    <div className="min-h-screen flex flex-col bg-background">
+      <BuyerHeader />
+      <main className="flex-1 container py-8">{children}</main>
+      <BuyerFooter />
+      <Toaster />
+    </div>
   );
 }

@@ -269,7 +269,10 @@ export default function OrdersPage() {
                           ${Number(item.price_at_time).toFixed(2)}
                         </TableCell>
                         <TableCell>
-                          ${(item.price_at_time * item.quantity).toFixed(2)}
+                          $
+                          {(Number(item.price_at_time) * item.quantity).toFixed(
+                            2
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}

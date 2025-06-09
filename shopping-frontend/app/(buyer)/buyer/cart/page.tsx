@@ -137,7 +137,7 @@ export default function CartPage() {
   };
 
   const totalAmount = cartItems.reduce(
-    (total, item) => total + item.product.price * item.quantity,
+    (total, item) => total + Number(item.product.price) * item.quantity,
     0
   );
 
@@ -263,7 +263,10 @@ export default function CartPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          ${(item.product.price * item.quantity).toFixed(2)}
+                          $
+                          {(Number(item.product.price) * item.quantity).toFixed(
+                            2
+                          )}
                         </TableCell>
                         <TableCell>
                           <Button

@@ -11,236 +11,295 @@ import {
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 import { AuthService } from "@/lib/auth";
+import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Bell, Shield, Palette, Globe } from "lucide-react";
+
+import {
+  SettingsIcon,
+  User,
+  Bell,
+  Shield,
+  Palette,
+  Edit,
+  LogOut,
+} from "lucide-react";
+import { LoadingSkeleton } from "@/components/loading-skeleton";
+import { ProfileModal } from "@/components/profile-model";
 
 export default function SettingsPage() {
   const [user, setUser] = useState(AuthService.getUser());
+  const [isLoading, setIsLoading] = useState(true);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [settings, setSettings] = useState({
-    notifications: true,
-    emailUpdates: true,
-    darkMode: false,
-    language: "en",
-    timezone: "UTC",
+    emailNotifications: true,
+    pushNotifications: false,
+    marketingEmails: false,
+    orderUpdates: true,
   });
   const { toast } = useToast();
 
   useEffect(() => {
-    // Load settings from localStorage or API
-    const savedSettings = localStorage.getItem("userSettings");
-    if (savedSettings) {
-      setSettings(JSON.parse(savedSettings));
-    }
+    const fetchProfile = async () => {
+      try {
+        const data = await ApiService.getProfile();
+        setUser(data);
+        AuthService.setUser(data);
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfile();
   }, []);
 
-  const saveSettings = () => {
-    localStorage.setItem("userSettings", JSON.stringify(settings));
+  const handleLogout = async () => {
+    try {
+      await ApiService.logout();
+      window.location.href = "/login";
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
+  const handleProfileUpdate = async () => {
+    try {
+      const data = await ApiService.getProfile();
+      setUser(data);
+      AuthService.setUser(data);
+    } catch (error) {
+      console.error("Failed to refresh profile:", error);
+    }
+  };
+
+  const handleSettingChange = (key: keyof typeof settings, value: boolean) => {
+    setSettings((prev) => ({ ...prev, [key]: value }));
     toast({
-      title: "Settings saved",
-      description: "Your preferences have been updated successfully",
+      title: "Setting Updated",
+      description: "Your preference has been saved.",
     });
   };
 
-  const updateSetting = (key: string, value: any) => {
-    setSettings((prev) => ({ ...prev, [key]: value }));
-  };
+  if (isLoading) {
+    return <LoadingSkeleton type="form" />;
+  }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto py-8 px-4">
-        <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-            <p className="text-muted-foreground">
-              Manage your account preferences and settings
-            </p>
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-3">
-            {/* User Info Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
-                  Account Info
-                </CardTitle>
-                <CardDescription>Your account details</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label className="text-sm font-medium">Name</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {user?.name || "Not set"}
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Email</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {user?.email || "Not set"}
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Role</Label>
-                  <p className="text-sm text-muted-foreground capitalize">
-                    {user?.role || AuthService.getUserRole() || "User"}
-                  </p>
-                </div>
-                <Button variant="outline" className="w-full" asChild>
-                  <a
-                    href={`/${user?.role || AuthService.getUserRole()}/profile`}
-                  >
-                    Edit Profile
-                  </a>
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Settings Cards */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Notifications */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Bell className="h-5 w-5" />
-                    Notifications
-                  </CardTitle>
-                  <CardDescription>
-                    Configure your notification preferences
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="notifications">Push Notifications</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Receive notifications about your orders
-                      </p>
-                    </div>
-                    <Switch
-                      id="notifications"
-                      checked={settings.notifications}
-                      onCheckedChange={(checked) =>
-                        updateSetting("notifications", checked)
-                      }
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="emailUpdates">Email Updates</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Receive email updates about new features
-                      </p>
-                    </div>
-                    <Switch
-                      id="emailUpdates"
-                      checked={settings.emailUpdates}
-                      onCheckedChange={(checked) =>
-                        updateSetting("emailUpdates", checked)
-                      }
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Appearance */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Palette className="h-5 w-5" />
-                    Appearance
-                  </CardTitle>
-                  <CardDescription>Customize the look and feel</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="darkMode">Dark Mode</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Toggle dark mode theme
-                      </p>
-                    </div>
-                    <Switch
-                      id="darkMode"
-                      checked={settings.darkMode}
-                      onCheckedChange={(checked) =>
-                        updateSetting("darkMode", checked)
-                      }
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Localization */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Globe className="h-5 w-5" />
-                    Localization
-                  </CardTitle>
-                  <CardDescription>
-                    Language and region settings
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="language">Language</Label>
-                    <Select
-                      value={settings.language}
-                      onValueChange={(value) =>
-                        updateSetting("language", value)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select language" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="en">English</SelectItem>
-                        <SelectItem value="es">Spanish</SelectItem>
-                        <SelectItem value="fr">French</SelectItem>
-                        <SelectItem value="de">German</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="timezone">Timezone</Label>
-                    <Select
-                      value={settings.timezone}
-                      onValueChange={(value) =>
-                        updateSetting("timezone", value)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select timezone" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="UTC">UTC</SelectItem>
-                        <SelectItem value="EST">Eastern Time</SelectItem>
-                        <SelectItem value="PST">Pacific Time</SelectItem>
-                        <SelectItem value="GMT">Greenwich Mean Time</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="flex justify-end">
-                <Button onClick={saveSettings}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  Save Settings
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+        <p className="text-muted-foreground">
+          Manage your account settings and preferences.
+        </p>
       </div>
+
+      <div className="grid gap-6">
+        {/* Profile Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Profile Settings
+            </CardTitle>
+            <CardDescription>
+              Manage your personal information and account details.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">{user?.name}</p>
+                <p className="text-sm text-muted-foreground">{user?.email}</p>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => setIsProfileModalOpen(true)}
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Profile
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Appearance Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Palette className="h-5 w-5" />
+              Appearance
+            </CardTitle>
+            <CardDescription>
+              Customize the look and feel of your interface.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="theme-switcher" className="text-base">
+                  Theme
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Choose your preferred theme
+                </p>
+              </div>
+              <ThemeSwitcher />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Notification Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5" />
+              Notifications
+            </CardTitle>
+            <CardDescription>
+              Configure how you want to receive notifications.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="email-notifications" className="text-base">
+                  Email Notifications
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Receive notifications via email
+                </p>
+              </div>
+              <Switch
+                id="email-notifications"
+                checked={settings.emailNotifications}
+                onCheckedChange={(checked) =>
+                  handleSettingChange("emailNotifications", checked)
+                }
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="order-updates" className="text-base">
+                  Order Updates
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Get notified about order status changes
+                </p>
+              </div>
+              <Switch
+                id="order-updates"
+                checked={settings.orderUpdates}
+                onCheckedChange={(checked) =>
+                  handleSettingChange("orderUpdates", checked)
+                }
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="marketing-emails" className="text-base">
+                  Marketing Emails
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Receive promotional offers and updates
+                </p>
+              </div>
+              <Switch
+                id="marketing-emails"
+                checked={settings.marketingEmails}
+                onCheckedChange={(checked) =>
+                  handleSettingChange("marketingEmails", checked)
+                }
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Security Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              Security
+            </CardTitle>
+            <CardDescription>
+              Manage your account security and privacy settings.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Password</p>
+                <p className="text-sm text-muted-foreground">
+                  Change your account password
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => setIsProfileModalOpen(true)}
+              >
+                Change Password
+              </Button>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Email Verification</p>
+                <p className="text-sm text-muted-foreground">
+                  {user?.email_verified_at
+                    ? "Your email is verified"
+                    : "Your email is not verified"}
+                </p>
+              </div>
+              {user?.email_verified_at ? (
+                <span className="text-sm text-green-600 font-medium">
+                  Verified
+                </span>
+              ) : (
+                <Button variant="outline" size="sm">
+                  Verify Email
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Account Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <SettingsIcon className="h-5 w-5" />
+              Account Actions
+            </CardTitle>
+            <CardDescription>Manage your account and session.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Sign Out</p>
+                <p className="text-sm text-muted-foreground">
+                  Sign out of your account on this device
+                </p>
+              </div>
+              <Button variant="outline" onClick={handleLogout}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <ProfileModal
+        user={user}
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        onUpdate={handleProfileUpdate}
+      />
     </div>
   );
 }

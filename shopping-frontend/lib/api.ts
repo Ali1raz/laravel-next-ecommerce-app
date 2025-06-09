@@ -19,7 +19,16 @@ export interface User {
 export interface Role {
   id: number;
   name: string;
+  guard_name?: string;
+  created_at?: string;
+  updated_at?: string;
   permissions?: Permission[];
+  pivot?: {
+    model_type?: string;
+    model_id?: number;
+    role_id?: number;
+    user_id?: number;
+  };
 }
 
 export interface Permission {
@@ -31,8 +40,11 @@ export interface Product {
   id: number;
   title: string;
   description: string;
-  price: number;
+  price: number | string;
   quantity: number;
+  seller_id?: number;
+  created_at?: string;
+  updated_at?: string;
   seller: {
     id: number;
     name: string;
@@ -46,25 +58,83 @@ export interface CartItem {
   product: Product;
 }
 
-export interface Bill {
-  id: number;
-  total_amount: number;
-  created_at: string;
-  items: BillItem[];
-}
-
 export interface BillItem {
   id: number;
+  bill_id?: number;
+  product_id?: number;
   quantity: number;
-  price_at_time: number;
+  price_at_time: number | string;
+  created_at?: string;
+  updated_at?: string;
   product: Product;
 }
 
-export interface SellerDashboard {
-  totalProducts: number;
-  totalOrders: number;
-  totalRevenue: number;
-  recentOrders: any[];
+export interface Bill {
+  id: number;
+  user_id?: number;
+  total_amount: number | string;
+  created_at: string;
+  updated_at?: string;
+  status?: string;
+  items: BillItem[];
+  user?: User;
+}
+
+export interface ApiResponse<T> {
+  status: "success" | "error";
+  data?: T;
+  message?: string;
+  errors?: Record<string, string[]>;
+}
+
+export interface PaginatedResponse<T> {
+  current_page: number;
+  data: T[];
+  first_page_url: string;
+  from: number;
+  last_page: number;
+  last_page_url: string;
+  links: Array<{
+    url: string | null;
+    label: string;
+    active: boolean;
+  }>;
+  next_page_url: string | null;
+  path: string;
+  per_page: number;
+  prev_page_url: string | null;
+  to: number;
+  total: number;
+}
+
+export interface AdminDashboardData {
+  analytics: {
+    total_users: number;
+    total_roles: number;
+    total_permissions: number;
+    users_by_role: Array<{
+      name: string;
+      total: number;
+    }>;
+  };
+  recent_users: User[];
+}
+
+export interface SellerDashboardData {
+  total_products: number;
+  total_sales: string | number;
+  total_orders: number;
+  recent_orders: Bill[];
+  top_selling_products: any[];
+  low_stock_products: any[];
+}
+
+export interface BuyerDashboardData {
+  cart_items_count: number;
+  total_spent: number;
+  recent_orders: Bill[];
+  favorite_products: any[];
+  recommended_products: any[];
 }
 
 export class ApiService {
@@ -78,6 +148,7 @@ export class ApiService {
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
+      Accept: "application/json",
       ...options.headers,
     };
 
@@ -93,60 +164,32 @@ export class ApiService {
       });
 
       if (!response.ok) {
-        const error = await response
-          .json()
-          .catch(() => ({ message: `HTTP error ${response.status}` }));
+        const error = await response.json().catch(() => ({
+          status: "error",
+          message: `HTTP error ${response.status}`,
+        }));
         throw new Error(error.message || `HTTP error ${response.status}`);
       }
 
-      const result = await response.json();
+      const result: ApiResponse<T> = await response.json();
 
-      // Handle the API response format with status field
       if (result.status === "error") {
         throw new Error(result.message || "API request failed");
       }
 
-      // Return the data field if it exists, otherwise return the whole result
-      return result.data || result;
+      return result.data as T;
     } catch (error) {
       console.error(`API Error (${endpoint}):`, error);
       throw error;
     }
   }
 
-  static async get<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint);
-  }
-
-  static async post<T>(
-    endpoint: string,
-    data: Record<string, unknown>
-  ): Promise<T> {
-    return this.request<T>(endpoint, {
-      method: "POST",
-      body: data,
-    });
-  }
-
-  static async put<T>(
-    endpoint: string,
-    data: Record<string, unknown>
-  ): Promise<T> {
-    return this.request<T>(endpoint, {
-      method: "PUT",
-      body: data,
-    });
-  }
-
-  static async delete<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, {
-      method: "DELETE",
-    });
-  }
-
-  // Auth
+  // Auth endpoints
   static async login(email: string, password: string) {
-    return this.post("/login", { email, password });
+    return this.request("/login", {
+      method: "POST",
+      body: { email, password },
+    });
   }
 
   static async register(data: {
@@ -155,15 +198,31 @@ export class ApiService {
     password: string;
     password_confirmation: string;
   }) {
-    return this.post("/register", data);
+    return this.request("/register", {
+      method: "POST",
+      body: data,
+    });
   }
 
   static async verifyEmail(email: string, code: string) {
-    return this.post("/verify-code", { email, code });
+    return this.request("/verify-code", {
+      method: "POST",
+      body: { email, code },
+    });
+  }
+
+  static async resendVerificationCode(email: string) {
+    return this.request("/resend-verification-code", {
+      method: "POST",
+      body: { email },
+    });
   }
 
   static async forgotPassword(email: string) {
-    return this.post("/forgot-password", { email });
+    return this.request("/forgot-password", {
+      method: "POST",
+      body: { email },
+    });
   }
 
   static async resetPassword(data: {
@@ -172,16 +231,25 @@ export class ApiService {
     password: string;
     password_confirmation: string;
   }) {
-    return this.post("/reset-password", data);
+    return this.request("/reset-password", {
+      method: "POST",
+      body: data,
+    });
   }
 
   static async logout() {
-    return this.post("/logout", {});
+    return this.request("/logout", {
+      method: "POST",
+    });
   }
 
-  // Profile Management
+  static async getDashboard() {
+    return this.request("/admin/dashboard");
+  }
+
+  // Profile endpoints
   static async getProfile(): Promise<User> {
-    return this.get("/profile");
+    return this.request("/profile");
   }
 
   static async updateProfile(data: {
@@ -191,123 +259,15 @@ export class ApiService {
     password?: string;
     password_confirmation?: string;
   }) {
-    return this.put("/profile", data);
+    return this.request("/profile", {
+      method: "PUT",
+      body: data,
+    });
   }
 
-  // Products - Buyer
-  static async getProducts(): Promise<Product[]> {
-    return this.get("/products");
-  }
-
-  static async getProduct(id: number): Promise<Product> {
-    return this.get(`/products/${id}`);
-  }
-
-  // Products - Seller
-  static async getSellerProducts(): Promise<Product[]> {
-    return this.get("/seller/products");
-  }
-
-  static async createSellerProduct(data: {
-    title: string;
-    description: string;
-    price: number;
-    quantity: number;
-  }): Promise<Product> {
-    return this.post("/seller/products", data);
-  }
-
-  static async updateSellerProduct(
-    id: number,
-    data: {
-      title?: string;
-      description?: string;
-      price?: number;
-      quantity?: number;
-    }
-  ): Promise<Product> {
-    return this.put(`/seller/products/${id}`, data);
-  }
-
-  static async deleteSellerProduct(id: number): Promise<void> {
-    return this.delete(`/seller/products/${id}`);
-  }
-
-  // Admin Product Management
-  static async createAdminProduct(data: {
-    title: string;
-    description: string;
-    price: number;
-    quantity: number;
-  }): Promise<Product> {
-    return this.post("/admin/products", data);
-  }
-
-  static async updateAdminProduct(
-    id: number,
-    data: {
-      title?: string;
-      description?: string;
-      price?: number;
-      quantity?: number;
-    }
-  ): Promise<Product> {
-    return this.put(`/admin/products/${id}`, data);
-  }
-
-  static async deleteAdminProduct(id: number): Promise<void> {
-    return this.delete(`/admin/products/${id}`);
-  }
-
-  // Cart Management
-  static async getCart(): Promise<CartItem[]> {
-    return this.get("/cart");
-  }
-
-  static async addToCart(data: { product_id: number; quantity: number }) {
-    return this.post("/cart/add", data);
-  }
-
-  static async removeFromCart(data: { product_id: number }) {
-    return this.post("/cart/remove", data);
-  }
-
-  static async updateCartQuantity(data: {
-    product_id: number;
-    quantity: number;
-  }) {
-    return this.put("/cart/update-quantity", data);
-  }
-
-  // Bills
-  static async getBills(): Promise<Bill[]> {
-    return this.get("/bills");
-  }
-
-  static async getBill(id: number): Promise<Bill> {
-    return this.get(`/bills/${id}`);
-  }
-
-  static async checkout() {
-    return this.post("/checkout", {});
-  }
-
-  // Dashboard endpoints
-  static async getDashboard() {
-    return this.get("/admin/dashboard");
-  }
-
-  static async getBuyerDashboard() {
-    return this.get("/buyer/dashboard");
-  }
-
-  static async getSellerDashboard(): Promise<SellerDashboard> {
-    return this.get("/seller/dashboard");
-  }
-
-  // Users Management (Admin only)
-  static async getUsers() {
-    return this.get("/admin/users");
+  // User management (Admin only)
+  static async getUsers(): Promise<PaginatedResponse<User>> {
+    return this.request("/admin/users");
   }
 
   static async createUser(data: {
@@ -316,12 +276,15 @@ export class ApiService {
     password: string;
     password_confirmation: string;
     role: string;
-  }) {
-    return this.post("/admin/users", data);
+  }): Promise<User> {
+    return this.request("/admin/users", {
+      method: "POST",
+      body: data,
+    });
   }
 
-  static async getUser(id: number) {
-    return this.get(`/admin/users/${id}`);
+  static async getUser(id: number): Promise<User> {
+    return this.request(`/admin/users/${id}`);
   }
 
   static async updateUser(
@@ -333,80 +296,183 @@ export class ApiService {
       password_confirmation?: string;
       role?: string;
     }
-  ) {
-    return this.put(`/admin/users/${id}`, data);
+  ): Promise<User> {
+    return this.request(`/admin/users/${id}`, {
+      method: "PUT",
+      body: data,
+    });
   }
 
-  static async deleteUser(id: number) {
-    return this.delete(`/admin/users/${id}`);
+  static async deleteUser(id: number): Promise<void> {
+    return this.request(`/admin/users/${id}`, {
+      method: "DELETE",
+    });
   }
 
-  // Roles (Admin only)
-  static async getRoles() {
-    return this.get("/admin/roles");
-  }
-
-  static async createRole(data: { name: string }) {
-    return this.post("/admin/roles", data);
-  }
-
-  static async getRole(id: number) {
-    return this.get(`/admin/roles/${id}`);
-  }
-
-  static async updateRole(id: number, data: { name: string }) {
-    return this.put(`/admin/roles/${id}`, data);
-  }
-
-  static async deleteRole(id: number) {
-    return this.delete(`/admin/roles/${id}`);
-  }
-
-  // Permissions (Admin only)
-  static async getPermissions() {
-    return this.get("/admin/permissions");
-  }
-
-  static async createPermission(data: { name: string }) {
-    return this.post("/admin/permissions", data);
-  }
-
-  static async getPermission(id: number) {
-    return this.get(`/admin/permissions/${id}`);
-  }
-
-  static async updatePermission(id: number, data: { name: string }) {
-    return this.put(`/admin/permissions/${id}`, data);
-  }
-
-  static async deletePermission(id: number) {
-    return this.delete(`/admin/permissions/${id}`);
-  }
-
-  static async assignPermissionsToRole(data: {
+  static async assignRoleToUser(data: {
+    user_id: number;
     role_id: number;
-    permission_ids: number[];
+  }): Promise<void> {
+    return this.request("/admin/users/assign-role", {
+      method: "POST",
+      body: data,
+    });
+  }
+
+  static async removeRoleFromUser(data: { user_id: number }): Promise<void> {
+    return this.request("/admin/users/remove-role", {
+      method: "POST",
+      body: data,
+    });
+  }
+
+  static async getUserRole(userId: number): Promise<Role> {
+    return this.request(`/admin/users/${userId}/role`);
+  }
+
+  // Dashboard endpoints
+  static async getAdminDashboard(): Promise<AdminDashboardData> {
+    return this.request("/admin/dashboard");
+  }
+
+  static async getSellerDashboard(): Promise<SellerDashboardData> {
+    return this.request("/seller/dashboard");
+  }
+
+  static async getBuyerDashboard(): Promise<BuyerDashboardData> {
+    return this.request("/buyer/dashboard");
+  }
+
+  // Product endpoints
+  static async getProducts(): Promise<Product[]> {
+    return this.request("/products");
+  }
+
+  static async getProduct(id: number): Promise<Product> {
+    return this.request(`/products/${id}`);
+  }
+
+  // Seller product management
+  static async getSellerProducts(): Promise<Product[]> {
+    return this.request("/seller/products");
+  }
+
+  static async createSellerProduct(data: {
+    title: string;
+    description: string;
+    price: number | string;
+    quantity: number;
+  }): Promise<Product> {
+    return this.request("/seller/products", {
+      method: "POST",
+      body: data,
+    });
+  }
+
+  static async updateSellerProduct(
+    id: number,
+    data: {
+      title?: string;
+      description?: string;
+      price?: number | string;
+      quantity?: number;
+    }
+  ): Promise<Product> {
+    return this.request(`/seller/products/${id}`, {
+      method: "PUT",
+      body: data,
+    });
+  }
+
+  static async deleteSellerProduct(id: number): Promise<void> {
+    return this.request(`/seller/products/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  // Admin product management
+  static async getAdminProducts(): Promise<Product[]> {
+    return this.request("/admin/products");
+  }
+
+  static async createAdminProduct(data: {
+    title: string;
+    description: string;
+    price: number | string;
+    quantity: number;
+  }): Promise<Product> {
+    return this.request("/admin/products", {
+      method: "POST",
+      body: data,
+    });
+  }
+
+  static async getAdminProduct(id: number): Promise<Product> {
+    return this.request(`/admin/products/${id}`);
+  }
+
+  static async updateAdminProduct(
+    id: number,
+    data: {
+      title?: string;
+      description?: string;
+      price?: number | string;
+      quantity?: number;
+    }
+  ): Promise<Product> {
+    return this.request(`/admin/products/${id}`, {
+      method: "PUT",
+      body: data,
+    });
+  }
+
+  static async deleteAdminProduct(id: number): Promise<void> {
+    return this.request(`/admin/products/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  // Cart endpoints
+  static async getCart(): Promise<CartItem[]> {
+    return this.request("/cart");
+  }
+
+  static async addToCart(data: { product_id: number; quantity: number }) {
+    return this.request("/cart/add", {
+      method: "POST",
+      body: data,
+    });
+  }
+
+  static async removeFromCart(data: { product_id: number }) {
+    return this.request("/cart/remove", {
+      method: "POST",
+      body: data,
+    });
+  }
+
+  static async updateCartQuantity(data: {
+    product_id: number;
+    quantity: number;
   }) {
-    return this.post("/admin/permissions/assign-to-role", data);
+    return this.request("/cart/update-quantity", {
+      method: "PUT",
+      body: data,
+    });
   }
 
-  static async removePermissionsFromRole(data: {
-    role_id: number;
-    permission_ids: number[];
-  }) {
-    return this.post("/admin/permissions/remove-from-role", data);
+  // Bills endpoints
+  static async getBills(): Promise<Bill[]> {
+    return this.request("/bills");
   }
 
-  // User Role Management (Admin only)
-  static async assignRoleToUser(data: { user_id: number; role_id: number }) {
-    return this.post("/admin/users/assign-role", data);
+  static async getBill(id: number): Promise<Bill> {
+    return this.request(`/bills/${id}`);
   }
 
-  static async removeRoleFromUser(data: { user_id: number }) {
-    return this.post("/admin/users/remove-role", data);
-  }
-
-  static async getUserRole(userId: number) {
-    return this.get(`/admin/users/${userId}/role`);
+  static async checkout() {
+    return this.request("/checkout", {
+      method: "POST",
+    });
   }
 }

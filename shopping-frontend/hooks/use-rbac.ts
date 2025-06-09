@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthService } from "@/lib/auth";
-import { RBACService } from "@/lib/rbac";
 import { useToast } from "@/hooks/use-toast";
+import { RBACService } from "@/lib/rbac";
 
 type RoleType = "admin" | "seller" | "buyer";
 

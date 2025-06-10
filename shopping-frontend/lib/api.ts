@@ -55,7 +55,6 @@ export class ApiService {
 
       return result.data as T;
     } catch (error) {
-      console.error(`API Error (${endpoint}):`, error);
       throw error;
     }
   }

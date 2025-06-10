@@ -1,12 +1,9 @@
 "use client";
 
-import type React from "react";
-
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Card,
@@ -17,55 +14,63 @@ import {
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Mail } from "lucide-react";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSeparator,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
+import { REGEXP_ONLY_DIGITS } from "input-otp";
+import { ApiService } from "@/lib/api";
+
+const VERIFICATION_CODE_LENGTH = 6;
+const RESEND_COOLDOWN = 60; // seconds
 
 export default function VerifyEmailPage() {
-  const [email, setEmail] = useState("");
-  const [verificationCode, setVerificationCode] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isResending, setIsResending] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [resendCountdown, setResendCountdown] = useState(0);
+
+  const email = searchParams.get("email");
 
   useEffect(() => {
-    const emailParam = searchParams.get("email");
-    if (emailParam) {
-      setEmail(emailParam);
+    if (!email) {
+      router.push("/login");
     }
-  }, [searchParams]);
+  }, [email, router]);
 
-  const handleVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  if (!email) {
+    return null;
+  }
 
-    try {
-      const response = await fetch("http://127.0.0.1:8000/api/verify-code", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          code: verificationCode,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Verification failed");
-      }
-
+  const handleVerify = async () => {
+    if (verificationCode.length !== VERIFICATION_CODE_LENGTH) {
       toast({
-        title: "Email verified",
-        description: "You can now login to your account",
+        title: "Invalid Code",
+        description: "Please enter a valid 6-digit verification code.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await ApiService.verifyEmail(email, verificationCode);
+      toast({
+        title: "Email Verified",
+        description: "Your email has been verified successfully.",
       });
       router.push("/login");
     } catch (error) {
       toast({
-        title: "Verification failed",
+        title: "Verification Failed",
         description:
-          error instanceof Error ? error.message : "Please try again",
+          error instanceof Error
+            ? error.message
+            : "Failed to verify email. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -73,41 +78,37 @@ export default function VerifyEmailPage() {
     }
   };
 
-  const resendVerificationCode = async () => {
-    setIsResending(true);
+  const handleResendCode = async () => {
+    if (resendCountdown > 0) return;
+
+    setIsLoading(true);
     try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/api/resend-verification-code",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to resend code");
-      }
-
+      await ApiService.resendVerificationCode(email);
       toast({
-        title: "Verification code sent",
-        description: "Please check your email for the new code",
+        title: "Code Resent",
+        description: "A new verification code has been sent to your email.",
       });
+      setResendCountdown(RESEND_COOLDOWN);
+      const timer = setInterval(() => {
+        setResendCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
     } catch (error) {
       toast({
-        title: "Failed to resend code",
+        title: "Failed to Resend",
         description:
-          error instanceof Error ? error.message : "Please try again",
+          error instanceof Error
+            ? error.message
+            : "Failed to resend verification code. Please try again.",
         variant: "destructive",
       });
     } finally {
-      setIsResending(false);
+      setIsLoading(false);
     }
   };
 
@@ -128,51 +129,60 @@ export default function VerifyEmailPage() {
             Verify Your Email
           </CardTitle>
           <CardDescription className="text-center">
-            Enter the 6-digit verification code sent to your email
+            Enter the 6-digit verification code <br /> sent to {email}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleVerify} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
-                  required
-                />
-              </div>
-            </div>
+          <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="verification-code">Verification Code</Label>
-              <Input
-                id="verification-code"
-                placeholder="Enter 6-digit code"
-                value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value)}
-                maxLength={6}
+              <InputOTP
                 required
-              />
+                inputMode="numeric"
+                pattern={REGEXP_ONLY_DIGITS}
+                maxLength={VERIFICATION_CODE_LENGTH}
+                id="verification-code"
+                value={verificationCode}
+                onChange={setVerificationCode}
+              >
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                </InputOTPGroup>
+                <InputOTPSeparator />
+                <InputOTPGroup>
+                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} />
+                </InputOTPGroup>
+                <InputOTPSeparator />
+                <InputOTPGroup>
+                  <InputOTPSlot index={4} />
+                  <InputOTPSlot index={5} />
+                </InputOTPGroup>
+              </InputOTP>
             </div>
             <div className="flex justify-end">
               <Button
-                type="button"
                 variant="link"
-                onClick={resendVerificationCode}
-                disabled={isResending}
+                onClick={handleResendCode}
+                disabled={isLoading || resendCountdown > 0}
               >
-                {isResending ? "Sending..." : "Resend code"}
+                {resendCountdown > 0
+                  ? `Resend Code (${resendCountdown}s)`
+                  : "Resend Code"}
               </Button>
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button
+              onClick={handleVerify}
+              className="w-full"
+              disabled={
+                isLoading ||
+                verificationCode.length !== VERIFICATION_CODE_LENGTH
+              }
+            >
               {isLoading ? "Verifying..." : "Verify Email"}
             </Button>
-          </form>
+          </div>
         </CardContent>
       </Card>
     </div>

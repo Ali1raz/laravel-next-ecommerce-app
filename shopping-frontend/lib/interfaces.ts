@@ -48,13 +48,10 @@ interface LoginCredentials {
 export interface Role {
   id: number;
   name: string;
-  guard_name?: string;
   created_at?: string;
   updated_at?: string;
   permissions?: Permission[];
   pivot?: {
-    model_type?: string;
-    model_id?: number;
     role_id?: number;
     user_id?: number;
   };

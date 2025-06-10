@@ -476,4 +476,43 @@ export class ApiService {
       method: "POST",
     });
   }
+
+  // Dashboard endpoint - fix the method name
+  static async getDashboard(): Promise<AdminDashboardData> {
+    return this.request("/admin/dashboard");
+  }
+
+  // Role management endpoints
+  static async getRoles(): Promise<Role[]> {
+    return this.request("/admin/roles");
+  }
+
+  static async getRole(id: number): Promise<Role> {
+    return this.request(`/admin/roles/${id}`);
+  }
+
+  // Permission management endpoints
+  static async getPermissions(): Promise<Permission[]> {
+    return this.request("/admin/permissions");
+  }
+
+  static async assignPermissionToRole(data: {
+    role_id: number;
+    permission_id: number;
+  }): Promise<void> {
+    return this.request("/admin/permissions/assign-to-role", {
+      method: "POST",
+      body: data,
+    });
+  }
+
+  static async removePermissionFromRole(data: {
+    role_id: number;
+    permission_id: number;
+  }): Promise<void> {
+    return this.request("/admin/permissions/remove-from-role", {
+      method: "POST",
+      body: data,
+    });
+  }
 }

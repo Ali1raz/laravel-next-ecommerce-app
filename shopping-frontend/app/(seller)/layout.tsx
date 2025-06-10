@@ -4,6 +4,8 @@ import type React from "react";
 
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { SellerSidebar } from "@/components/seller-sidebar";
+import { SellerFooter } from "@/components/seller-footer";
+import { SellerHeader } from "@/components/seller-header";
 import { useRBAC } from "@/hooks/use-rbac";
 import { Loader2 } from "lucide-react";
 
@@ -31,11 +33,15 @@ export default function SellerLayout({
   }
 
   return (
-    <SidebarProvider>
-      <SellerSidebar />
-      <SidebarInset>
-        <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">{children}</div>
-      </SidebarInset>
-    </SidebarProvider>
+    <div className="min-h-screen bg-background">
+      <SidebarProvider>
+        <SellerSidebar />
+        <SidebarInset className="flex flex-col min-h-screen">
+          <SellerHeader />
+          <main className="flex-1 container py-6 px-4 md:px-8">{children}</main>
+          <SellerFooter />
+        </SidebarInset>
+      </SidebarProvider>
+    </div>
   );
 }

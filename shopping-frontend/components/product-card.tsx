@@ -1,5 +1,7 @@
 "use client";
 
+import type React from "react";
+
 import { useState } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,11 +9,14 @@ import { Badge } from "@/components/ui/badge";
 import { ProductModal } from "@/components/product-modal";
 import { ApiService, type Product } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, ShoppingCart, Loader2 } from "lucide-react";
+import { Eye, ShoppingCart, Loader2, Edit, Trash2 } from "lucide-react";
 
 interface ProductCardProps {
   product: Product;
   onAddToCart?: () => void;
+  isOwnProduct?: boolean;
+  onEdit?: (product: Product) => void;
+  onDelete?: (productId: number) => void;
 }
 
 const StockBadge = ({ quantity }: { quantity: number }) => {
@@ -46,7 +51,13 @@ const ProductImage = ({
   </div>
 );
 
-export function ProductCard({ product, onAddToCart }: ProductCardProps) {
+export function ProductCard({
+  product,
+  onAddToCart,
+  isOwnProduct,
+  onEdit,
+  onDelete,
+}: ProductCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const { toast } = useToast();
@@ -75,6 +86,19 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
     }
   };
 
+  const getSellerName = () => {
+    if (product.seller?.name) {
+      return product.seller.name;
+    }
+    if (product.user?.name) {
+      return product.user.name;
+    }
+    // If no seller info is available, don't show the seller line
+    return null;
+  };
+
+  const sellerName = getSellerName();
+
   return (
     <>
       <Card className="group overflow-hidden h-full flex flex-col bg-card ">
@@ -99,9 +123,11 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             </span>
           </div>
 
-          <div className="text-xs text-muted-foreground">
-            by <span className="font-medium">{product.seller.name}</span>
-          </div>
+          {sellerName && (
+            <div className="text-xs text-muted-foreground">
+              by <span className="font-medium">{sellerName}</span>
+            </div>
+          )}
         </CardContent>
 
         <CardFooter className="px-4 sm:pt-0 sm:mt-0 sm:gap-3 flex flex-col gap-2">
@@ -114,21 +140,45 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             <Eye className="h-4 w-4 mr-2" />
             View
           </Button>
-          <Button
-            size="sm"
-            className="w-full "
-            onClick={handleAddToCart}
-            disabled={product.quantity <= 0 || isAddingToCart}
-          >
-            {isAddingToCart ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <>
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Add to Cart
-              </>
-            )}
-          </Button>
+
+          {isOwnProduct ? (
+            <div className="flex gap-2 w-full">
+              <Button
+                size="sm"
+                variant="default"
+                className="flex-1"
+                onClick={() => onEdit?.(product)}
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                className="flex-1"
+                onClick={() => onDelete?.(product.id)}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </Button>
+            </div>
+          ) : (
+            <Button
+              size="sm"
+              className="w-full"
+              onClick={handleAddToCart}
+              disabled={product.quantity <= 0 || isAddingToCart}
+            >
+              {isAddingToCart ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  Add to Cart
+                </>
+              )}
+            </Button>
+          )}
         </CardFooter>
       </Card>
 

@@ -27,28 +27,49 @@ import {
   Settings,
   LogOut,
   Store,
+  BarChart3,
+  Plus,
+  ShoppingBag,
 } from "lucide-react";
 
 const navigation = [
   {
-    title: "Dashboard",
+    title: "Products",
     href: "/seller",
     icon: Home,
   },
   {
-    title: "Products",
+    title: "Dashboard",
+    href: "/seller/dashboard",
+    icon: BarChart3,
+  },
+  {
+    title: "Manage Products",
     href: "/seller/products",
     icon: Package,
   },
   {
     title: "Orders",
     href: "/seller/orders",
-    icon: ShoppingCart,
+    icon: ShoppingBag,
   },
   {
     title: "Store Profile",
     href: "/seller/profile",
     icon: Store,
+  },
+];
+
+const quickActions = [
+  {
+    title: "Shopping Cart",
+    href: "/seller/cart",
+    icon: ShoppingCart,
+  },
+  {
+    title: "Add Product",
+    href: "/seller/products",
+    icon: Plus,
   },
   {
     title: "Settings",
@@ -93,10 +114,11 @@ export function SellerSidebar() {
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-semibold">Seller Portal</span>
-            <span className="text-xs text-muted-foreground">Shopping App</span>
+            <span className="text-xs text-muted-foreground">ShopApp</span>
           </div>
         </div>
       </SidebarHeader>
+
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
@@ -115,7 +137,26 @@ export function SellerSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Quick Actions</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {quickActions.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={pathname === item.href}>
+                    <Link href={item.href} className="flex items-center w-full">
+                      <item.icon className="h-4 w-4 mr-2" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
+
       <SidebarFooter>
         <div className="p-2">
           <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted">

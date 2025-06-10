@@ -45,7 +45,12 @@ export interface Product {
   seller_id?: number;
   created_at?: string;
   updated_at?: string;
-  seller: {
+  seller?: {
+    id: number;
+    name: string;
+    email: string;
+  };
+  user?: {
     id: number;
     name: string;
     email: string;
@@ -243,10 +248,6 @@ export class ApiService {
     });
   }
 
-  static async getDashboard() {
-    return this.request("/admin/dashboard");
-  }
-
   // Profile endpoints
   static async getProfile(): Promise<User> {
     return this.request("/profile");
@@ -343,18 +344,18 @@ export class ApiService {
     return this.request("/buyer/dashboard");
   }
 
-  // Product endpoints
+  // Product endpoints - Updated to include seller information
   static async getProducts(): Promise<Product[]> {
-    return this.request("/products");
+    return this.request("/products?include=seller,user");
   }
 
   static async getProduct(id: number): Promise<Product> {
-    return this.request(`/products/${id}`);
+    return this.request(`/products/${id}?include=seller,user`);
   }
 
   // Seller product management
   static async getSellerProducts(): Promise<Product[]> {
-    return this.request("/seller/products");
+    return this.request("/seller/products?include=seller,user");
   }
 
   static async createSellerProduct(data: {
@@ -392,7 +393,7 @@ export class ApiService {
 
   // Admin product management
   static async getAdminProducts(): Promise<Product[]> {
-    return this.request("/admin/products");
+    return this.request("/admin/products?include=seller,user");
   }
 
   static async createAdminProduct(data: {
@@ -408,7 +409,7 @@ export class ApiService {
   }
 
   static async getAdminProduct(id: number): Promise<Product> {
-    return this.request(`/admin/products/${id}`);
+    return this.request(`/admin/products/${id}?include=seller,user`);
   }
 
   static async updateAdminProduct(

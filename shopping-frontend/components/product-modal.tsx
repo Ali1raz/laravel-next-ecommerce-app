@@ -90,7 +90,19 @@ export function ProductModal({
   };
 
   const stockStatus = getStockStatus();
+
+  const getSellerName = () => {
+    if (product.seller?.name) {
+      return product.seller.name;
+    }
+    if (product.user?.name) {
+      return product.user.name;
+    }
+    return null;
+  };
+
   const maxQuantity = Math.min(product.quantity, 10); // Limit to 10 or available stock
+  const sellerName = getSellerName();
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -99,12 +111,15 @@ export function ProductModal({
           <DialogTitle className="text-base sm:text-xl font-bold leading-tight pr-8 line-clamp-2">
             {product.title}
           </DialogTitle>
-          <DialogDescription className="flex items-center gap-2 text-xs sm:text-base">
-            <span className="flex items-center text-foreground font-medium">
-              <User className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-              {product.seller.name}
-            </span>
-          </DialogDescription>
+          {sellerName && (
+            <DialogDescription className="flex items-center gap-2 text-base">
+              <span>Sold by</span>
+              <span className="flex items-center text-foreground font-medium">
+                <User className="h-4 w-4 mr-1" />
+                {sellerName}
+              </span>
+            </DialogDescription>
+          )}
         </DialogHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6 mt-2 sm:mt-4">
@@ -219,10 +234,12 @@ export function ProductModal({
                     : "Out of stock"}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Seller:</span>
-                <span className="font-medium">{product.seller.name}</span>
-              </div>
+              {sellerName && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Seller:</span>
+                  <span className="font-medium">{sellerName}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>

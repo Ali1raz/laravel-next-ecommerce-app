@@ -93,8 +93,11 @@ export default function ForgotPasswordPage() {
                 If an account exists with the email you provided, you will
                 receive a password reset code shortly.
               </p>
-              <Button className="w-full" onClick={() => router.push("/login")}>
-                Return to Login
+              <Button
+                className="w-full"
+                onClick={() => router.push("/reset-password")}
+              >
+                Go to reset password page
               </Button>
             </div>
           ) : (

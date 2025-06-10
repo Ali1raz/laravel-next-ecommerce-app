@@ -13,7 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Mail } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import {
   InputOTP,
   InputOTPGroup,
@@ -180,7 +180,7 @@ export default function VerifyEmailPage() {
                 verificationCode.length !== VERIFICATION_CODE_LENGTH
               }
             >
-              {isLoading ? "Verifying..." : "Verify Email"}
+              {isLoading ? "Please wait..." : "Verify Email"}
             </Button>
           </div>
         </CardContent>

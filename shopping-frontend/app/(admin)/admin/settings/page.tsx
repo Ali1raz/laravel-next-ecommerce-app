@@ -55,7 +55,7 @@ export default function SettingsPage() {
                 <div className="space-y-0.5">
                   <Label className="text-base">API Base URL</Label>
                   <div className="text-sm text-muted-foreground">
-                    http://your-domain.com/api
+                    http://127.0.0.1:8000/api
                   </div>
                 </div>
               </div>

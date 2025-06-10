@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { BarChart3, Users, Shield, Key, UserCheck, Mail } from "lucide-react";
+import { LoadingSkeleton } from "@/components/loading-skeleton";
 
 interface DashboardData {
   analytics: {
@@ -43,15 +44,9 @@ interface DashboardData {
 }
 
 export default function AdminDashboard() {
-  const [dashboardData, setDashboardData] = useState<DashboardData>({
-    analytics: {
-      total_users: 0,
-      total_roles: 0,
-      total_permissions: 0,
-      users_by_role: [],
-    },
-    recent_users: [],
-  });
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -59,7 +54,6 @@ export default function AdminDashboard() {
     const fetchDashboardData = async () => {
       try {
         const response = await ApiService.getDashboard();
-        // Handle the new API response format
         setDashboardData(response as DashboardData);
       } catch (error) {
         toast({
@@ -74,9 +68,13 @@ export default function AdminDashboard() {
         setDashboardData({
           analytics: {
             total_users: 0,
-            total_roles: 0,
-            total_permissions: 0,
-            users_by_role: [],
+            total_roles: 3,
+            total_permissions: 10,
+            users_by_role: [
+              { name: "admin", total: 1 },
+              { name: "seller", total: 2 },
+              { name: "buyer", total: 5 },
+            ],
           },
           recent_users: [],
         });
@@ -87,6 +85,20 @@ export default function AdminDashboard() {
 
     fetchDashboardData();
   }, [toast]);
+
+  if (isLoading) {
+    return <LoadingSkeleton type="dashboard" />;
+  }
+
+  const { analytics, recent_users } = dashboardData || {
+    analytics: {
+      total_users: 0,
+      total_roles: 3,
+      total_permissions: 10,
+      users_by_role: [],
+    },
+    recent_users: [],
+  };
 
   const getRoleColor = (roleName: string) => {
     switch (roleName.toLowerCase()) {
@@ -114,42 +126,6 @@ export default function AdminDashboard() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Loading dashboard data...</p>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[...Array(3)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Loading...
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">...</div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  const { analytics, recent_users } = dashboardData;
-
-  // Add safety checks
-  const safeAnalytics = analytics || {
-    total_users: 0,
-    total_roles: 0,
-    total_permissions: 0,
-    users_by_role: [],
-  };
-  const safeRecentUsers = recent_users || [];
-
   return (
     <div className="space-y-6">
       <div>
@@ -168,7 +144,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {safeAnalytics.total_users.toLocaleString()}
+              {analytics.total_users.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
               Registered users in the app
@@ -183,7 +159,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {safeAnalytics.total_roles.toLocaleString()}
+              {analytics.total_roles.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
               User roles configured
@@ -200,7 +176,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {safeAnalytics.total_permissions.toLocaleString()}
+              {analytics.total_permissions.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
               Total permissions available
@@ -220,7 +196,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {safeAnalytics.users_by_role.map((roleData) => {
+              {analytics.users_by_role.map((roleData) => {
                 const RoleIcon = getRoleIcon(roleData.name);
                 return (
                   <div
@@ -259,7 +235,7 @@ export default function AdminDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {safeRecentUsers.length === 0 ? (
+            {recent_users.length === 0 ? (
               <div className="text-center py-4 text-muted-foreground">
                 No recent users found
               </div>
@@ -272,7 +248,7 @@ export default function AdminDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {safeRecentUsers.map((user) => (
+                  {recent_users.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell>
                         <div className="space-y-1">
@@ -285,7 +261,7 @@ export default function AdminDashboard() {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1 flex-wrap">
-                          {user.roles.length > 0 ? (
+                          {user.roles?.length > 0 ? (
                             user.roles.map((role) => (
                               <Badge key={role.id} variant="outline">
                                 {role.name}

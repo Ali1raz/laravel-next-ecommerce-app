@@ -3,7 +3,6 @@
 import type React from "react";
 
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -11,6 +10,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -26,7 +27,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,42 +37,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { LoadingSkeleton } from "@/components/loading-skeleton";
 import {
   Plus,
   Edit,
   Trash2,
-  Mail,
-  CheckCircle,
-  XCircle,
-  UserCog,
+  UserCheck,
+  Shield,
+  Users,
   Loader2,
+  UserCog,
 } from "lucide-react";
-import { useRBAC } from "@/hooks/use-rbac";
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  email_verified_at: string | null;
-  roles: Array<{
-    id: number;
-    name: string;
-  }>;
-}
-
-interface UsersResponse {
-  current_page: number;
-  data: User[];
-  per_page: number;
-  total: number;
-}
+import type { User, Role, PaginatedResponse } from "@/lib/api";
 
 export default function UsersPage() {
-  const { isAuthorized, isLoading: isRBACLoading } = useRBAC("admin");
   const [users, setUsers] = useState<User[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
@@ -90,9 +72,8 @@ export default function UsersPage() {
   const { toast } = useToast();
 
   const fetchUsers = async () => {
-    setIsLoading(true);
     try {
-      const response = (await ApiService.getUsers()) as UsersResponse;
+      const response = (await ApiService.getUsers()) as PaginatedResponse<User>;
       setUsers(response.data || []);
     } catch (error) {
       toast({
@@ -101,16 +82,26 @@ export default function UsersPage() {
           error instanceof Error ? error.message : "Failed to load users",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
+    }
+  };
+
+  const fetchRoles = async () => {
+    try {
+      const rolesData = await ApiService.getRoles();
+      setRoles(rolesData || []);
+    } catch (error) {
+      console.error("Failed to load roles:", error);
     }
   };
 
   useEffect(() => {
-    if (isAuthorized) {
-      fetchUsers();
-    }
-  }, [isAuthorized]);
+    const loadData = async () => {
+      setIsLoading(true);
+      await Promise.all([fetchUsers(), fetchRoles()]);
+      setIsLoading(false);
+    };
+    loadData();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -173,14 +164,20 @@ export default function UsersPage() {
     }
 
     try {
-      await ApiService.updateUser(selectedUser.id, { role: formData.role });
-      toast({
-        title: "Success",
-        description: `User role changed to ${formData.role} successfully`,
-      });
-      setIsRoleDialogOpen(false);
-      setSelectedUser(null);
-      await fetchUsers();
+      const selectedRole = roles.find((r) => r.name === formData.role);
+      if (selectedRole) {
+        await ApiService.assignRoleToUser({
+          user_id: selectedUser.id,
+          role_id: selectedRole.id,
+        });
+        toast({
+          title: "Success",
+          description: `User role changed to ${formData.role} successfully`,
+        });
+        setIsRoleDialogOpen(false);
+        setSelectedUser(null);
+        await fetchUsers();
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -200,7 +197,7 @@ export default function UsersPage() {
       email: user.email,
       password: "",
       password_confirmation: "",
-      role: user.roles[0]?.name || "buyer",
+      role: user.roles?.[0]?.name || "buyer",
     });
     setIsDialogOpen(true);
   };
@@ -209,7 +206,7 @@ export default function UsersPage() {
     setSelectedUser(user);
     setFormData({
       ...formData,
-      role: user.roles[0]?.name || "buyer",
+      role: user.roles?.[0]?.name || "buyer",
     });
     setIsRoleDialogOpen(true);
   };
@@ -246,175 +243,330 @@ export default function UsersPage() {
     setIsDialogOpen(true);
   };
 
-  if (isRBACLoading || !isAuthorized) {
-    return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Loading...</h2>
-          <p className="text-muted-foreground">
-            Please wait while we verify your permissions
-          </p>
-        </div>
-      </div>
-    );
+  const getRoleColor = (roleName: string) => {
+    switch (roleName.toLowerCase()) {
+      case "admin":
+        return "destructive";
+      case "seller":
+        return "default";
+      case "buyer":
+        return "secondary";
+      default:
+        return "outline";
+    }
+  };
+
+  if (isLoading) {
+    return <LoadingSkeleton type="table" count={5} />;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Users</h1>
+          <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
           <p className="text-muted-foreground">
             Manage system users and their roles
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={openCreateDialog}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add User
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <form onSubmit={handleSubmit}>
-              <DialogHeader>
-                <DialogTitle>
-                  {editingUser ? "Edit User" : "Create New User"}
-                </DialogTitle>
-                <DialogDescription>
-                  {editingUser
-                    ? "Update the user details below."
-                    : "Enter the details for the new user."}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="name" className="text-right">
-                    Name
-                  </Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    className="col-span-3"
-                    placeholder="Enter full name"
-                    required
-                    disabled={isSubmitting}
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="email" className="text-right">
-                    Email
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                    className="col-span-3"
-                    placeholder="Enter email address"
-                    required
-                    disabled={isSubmitting}
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="password" className="text-right">
-                    Password
-                  </Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) =>
-                      setFormData({ ...formData, password: e.target.value })
-                    }
-                    className="col-span-3"
-                    placeholder="Enter password"
-                    required={!editingUser}
-                    disabled={isSubmitting}
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="password_confirmation" className="text-right">
-                    Confirm
-                  </Label>
-                  <Input
-                    id="password_confirmation"
-                    type="password"
-                    value={formData.password_confirmation}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        password_confirmation: e.target.value,
-                      })
-                    }
-                    className="col-span-3"
-                    placeholder="Confirm password"
-                    required={!editingUser}
-                    disabled={isSubmitting}
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="role" className="text-right">
-                    Role
-                  </Label>
-                  <Select
-                    value={formData.role}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, role: value })
-                    }
-                    disabled={isSubmitting}
-                  >
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Select a role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="buyer">Buyer</SelectItem>
-                      <SelectItem value="seller">Seller</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {editingUser ? "Updating..." : "Creating..."}
-                    </>
-                  ) : editingUser ? (
-                    "Update"
-                  ) : (
-                    "Create"
-                  )}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={openCreateDialog}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add User
+        </Button>
       </div>
+
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <Users className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{users.length}</div>
+            <p className="text-xs text-muted-foreground">
+              All registered users
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Admins</CardTitle>
+            <Shield className="h-4 w-4 text-red-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {
+                users.filter((u) => u.roles?.some((r) => r.name === "admin"))
+                  .length
+              }
+            </div>
+            <p className="text-xs text-muted-foreground">
+              System administrators
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Sellers</CardTitle>
+            <UserCheck className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {
+                users.filter((u) => u.roles?.some((r) => r.name === "seller"))
+                  .length
+              }
+            </div>
+            <p className="text-xs text-muted-foreground">Product sellers</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Buyers</CardTitle>
+            <UserCheck className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {
+                users.filter((u) => u.roles?.some((r) => r.name === "buyer"))
+                  .length
+              }
+            </div>
+            <p className="text-xs text-muted-foreground">Regular buyers</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>All Users</CardTitle>
+          <CardDescription>Manage all users in the system</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {users.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <Users className="h-12 w-12 text-muted-foreground/50 mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No users found</h3>
+              <p className="text-muted-foreground mb-4">
+                Create the first user to get started
+              </p>
+              <Button onClick={openCreateDialog}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add User
+              </Button>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User</TableHead>
+                  <TableHead>Email Status</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{user.name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {user.email}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          user.email_verified_at ? "default" : "secondary"
+                        }
+                      >
+                        {user.email_verified_at ? "Verified" : "Unverified"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1 flex-wrap">
+                        {user.roles && user.roles.length > 0 ? (
+                          user.roles.map((role, i) => (
+                            <Badge key={i} variant={getRoleColor(role.name)}>
+                              {role.name}
+                            </Badge>
+                          ))
+                        ) : (
+                          <Badge variant="outline">No role</Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {user.created_at
+                        ? new Date(user.created_at).toLocaleDateString()
+                        : "N/A"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleChangeUserRole(user)}
+                        >
+                          <UserCog className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEdit(user)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDelete(user.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* User Form Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <form onSubmit={handleSubmit}>
+            <DialogHeader>
+              <DialogTitle>
+                {editingUser ? "Edit User" : "Create New User"}
+              </DialogTitle>
+              <DialogDescription>
+                {editingUser
+                  ? "Update the user details below."
+                  : "Enter the details for the new user."}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                  placeholder="Enter user name"
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  placeholder="Enter email address"
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
+                  placeholder="Enter password"
+                  required={!editingUser}
+                  disabled={isSubmitting}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password_confirmation">Confirm Password</Label>
+                <Input
+                  id="password_confirmation"
+                  type="password"
+                  value={formData.password_confirmation}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      password_confirmation: e.target.value,
+                    })
+                  }
+                  placeholder="Confirm password"
+                  required={!editingUser}
+                  disabled={isSubmitting}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="role">Role</Label>
+                <Select
+                  value={formData.role}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, role: value })
+                  }
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roles.map((role, i) => (
+                      <SelectItem key={i} value={role.name}>
+                        {role.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {editingUser ? "Updating..." : "Creating..."}
+                  </>
+                ) : editingUser ? (
+                  "Update User"
+                ) : (
+                  "Create User"
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Role Change Dialog */}
       <Dialog open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[400px]">
           <form onSubmit={handleChangeRole}>
             <DialogHeader>
               <DialogTitle>Change User Role</DialogTitle>
               <DialogDescription>
-                Update the role for {selectedUser?.name}
+                Change the role for {selectedUser?.name}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="change-role" className="text-right">
-                  Role
-                </Label>
+              <div className="space-y-2">
+                <Label htmlFor="new-role">New Role</Label>
                 <Select
                   value={formData.role}
                   onValueChange={(value) =>
@@ -422,13 +574,15 @@ export default function UsersPage() {
                   }
                   disabled={isChangingRole}
                 >
-                  <SelectTrigger className="col-span-3">
+                  <SelectTrigger>
                     <SelectValue placeholder="Select a role" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="buyer">Buyer</SelectItem>
-                    <SelectItem value="seller">Seller</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
+                    {roles.map((role, i) => (
+                      <SelectItem key={i} value={role.name}>
+                        {role.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -438,7 +592,7 @@ export default function UsersPage() {
                 {isChangingRole ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Changing Role...
+                    Changing...
                   </>
                 ) : (
                   "Change Role"
@@ -448,109 +602,6 @@ export default function UsersPage() {
           </form>
         </DialogContent>
       </Dialog>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>All Users</CardTitle>
-          <CardDescription>A list of all users in your system</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="text-center">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-                <p className="text-muted-foreground">Loading users...</p>
-              </div>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-4">
-                      No users found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  users.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-medium">{user.id}</TableCell>
-                      <TableCell>{user.name}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-muted-foreground" />
-                          {user.email}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {user.email_verified_at ? (
-                          <Badge
-                            variant="default"
-                            className="flex items-center gap-1 w-fit"
-                          >
-                            <CheckCircle className="h-3 w-3" />
-                            Verified
-                          </Badge>
-                        ) : (
-                          <Badge
-                            variant="secondary"
-                            className="flex items-center gap-1 w-fit"
-                          >
-                            <XCircle className="h-3 w-3" />
-                            Unverified
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {user.roles.map((role) => (
-                          <Badge key={role.id} variant="outline">
-                            {role.name}
-                          </Badge>
-                        ))}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleChangeUserRole(user)}
-                          >
-                            <UserCog className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEdit(user)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDelete(user.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }

@@ -1,9 +1,6 @@
 "use client";
 
-import type React from "react";
-
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -11,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -19,60 +17,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Key, Shield, Minus } from "lucide-react";
-
-interface Permission {
-  id: number;
-  name: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-interface Role {
-  id: number;
-  name: string;
-}
+import { LoadingSkeleton } from "@/components/loading-skeleton";
+import { Key, Shield, Lock } from "lucide-react";
+import type { Permission } from "@/lib/api";
 
 export default function PermissionsPage() {
   const [permissions, setPermissions] = useState<Permission[]>([]);
-  const [roles, setRoles] = useState<Role[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
-  const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
-  const [editingPermission, setEditingPermission] = useState<Permission | null>(
-    null
-  );
-  const [permissionName, setPermissionName] = useState("");
-  const [selectedRoleId, setSelectedRoleId] = useState<string>("");
-  const [selectedPermissions, setSelectedPermissions] = useState<number[]>([]);
   const { toast } = useToast();
 
   const fetchPermissions = async () => {
+    setIsLoading(true);
     try {
-      const data = (await ApiService.getPermissions()) as Permission[];
-      setPermissions(Array.isArray(data) ? data : []);
+      const data = await ApiService.getPermissions();
+      setPermissions(data || []);
     } catch (error) {
       toast({
         title: "Error",
@@ -85,460 +45,204 @@ export default function PermissionsPage() {
     }
   };
 
-  const fetchRoles = async () => {
-    try {
-      const data = await ApiService.getRoles();
-      setRoles(Array.isArray(data) ? data : []);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to load roles",
-        variant: "destructive",
-      });
-    }
-  };
-
   useEffect(() => {
     fetchPermissions();
-    fetchRoles();
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      if (editingPermission) {
-        await ApiService.updatePermission(editingPermission.id, {
-          name: permissionName,
-        });
-        toast({
-          title: "Success",
-          description: "Permission updated successfully",
-        });
-      } else {
-        await ApiService.createPermission({ name: permissionName });
-        toast({
-          title: "Success",
-          description: "Permission created successfully",
-        });
-      }
-
-      setIsDialogOpen(false);
-      setEditingPermission(null);
-      setPermissionName("");
-      fetchPermissions();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Operation failed",
-        variant: "destructive",
-      });
+  const getPermissionCategory = (permissionName: string) => {
+    if (permissionName.includes("user") || permissionName.includes("manage")) {
+      return { category: "User Management", color: "destructive" as const };
     }
-  };
-
-  const handleAssignPermissions = async () => {
-    if (!selectedRoleId || selectedPermissions.length === 0) {
-      toast({
-        title: "Error",
-        description: "Please select a role and at least one permission",
-        variant: "destructive",
-      });
-      return;
+    if (permissionName.includes("product")) {
+      return { category: "Product Management", color: "default" as const };
     }
-
-    try {
-      await ApiService.assignPermissionsToRole({
-        role_id: Number.parseInt(selectedRoleId),
-        permission_ids: selectedPermissions,
-      });
-      toast({
-        title: "Success",
-        description: "Permissions assigned to role successfully",
-      });
-      setIsAssignDialogOpen(false);
-      setSelectedRoleId("");
-      setSelectedPermissions([]);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Failed to assign permissions",
-        variant: "destructive",
-      });
+    if (permissionName.includes("view") || permissionName.includes("read")) {
+      return { category: "View Access", color: "secondary" as const };
     }
-  };
-
-  const handleRemovePermissions = async () => {
-    if (!selectedRoleId || selectedPermissions.length === 0) {
-      toast({
-        title: "Error",
-        description: "Please select a role and at least one permission",
-        variant: "destructive",
-      });
-      return;
+    if (
+      permissionName.includes("delete") ||
+      permissionName.includes("remove")
+    ) {
+      return { category: "Delete Operations", color: "destructive" as const };
     }
-
-    try {
-      await ApiService.removePermissionsFromRole({
-        role_id: Number.parseInt(selectedRoleId),
-        permission_ids: selectedPermissions,
-      });
-      toast({
-        title: "Success",
-        description: "Permissions removed from role successfully",
-      });
-      setIsRemoveDialogOpen(false);
-      setSelectedRoleId("");
-      setSelectedPermissions([]);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Failed to remove permissions",
-        variant: "destructive",
-      });
+    if (permissionName.includes("add") || permissionName.includes("create")) {
+      return { category: "Create Operations", color: "default" as const };
     }
+    return { category: "General", color: "outline" as const };
   };
 
-  const handleEdit = (permission: Permission) => {
-    setEditingPermission(permission);
-    setPermissionName(permission.name);
-    setIsDialogOpen(true);
-  };
+  if (isLoading) {
+    return <LoadingSkeleton type="table" count={5} />;
+  }
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this permission?")) return;
-
-    try {
-      await ApiService.deletePermission(id);
-      toast({
-        title: "Success",
-        description: "Permission deleted successfully",
-      });
-      fetchPermissions();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Failed to delete permission",
-        variant: "destructive",
-      });
+  const permissionsByCategory = permissions.reduce((acc, permission) => {
+    const { category } = getPermissionCategory(permission.name);
+    if (!acc[category]) {
+      acc[category] = [];
     }
-  };
-
-  const openCreateDialog = () => {
-    setEditingPermission(null);
-    setPermissionName("");
-    setIsDialogOpen(true);
-  };
-
-  const openAssignDialog = () => {
-    setSelectedRoleId("");
-    setSelectedPermissions([]);
-    setIsAssignDialogOpen(true);
-  };
-
-  const openRemoveDialog = () => {
-    setSelectedRoleId("");
-    setSelectedPermissions([]);
-    setIsRemoveDialogOpen(true);
-  };
+    acc[category].push(permission);
+    return acc;
+  }, {} as Record<string, Permission[]>);
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Permissions</h1>
-          <p className="text-muted-foreground">
-            Manage system permissions and access controls
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Dialog
-            open={isRemoveDialogOpen}
-            onOpenChange={setIsRemoveDialogOpen}
-          >
-            <DialogTrigger asChild>
-              <Button variant="outline" onClick={openRemoveDialog}>
-                <Minus className="mr-2 h-4 w-4" />
-                Remove from Role
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Remove Permissions from Role</DialogTitle>
-                <DialogDescription>
-                  Select a role and permissions to remove from it.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="remove-role" className="text-right">
-                    Role
-                  </Label>
-                  <Select
-                    value={selectedRoleId}
-                    onValueChange={setSelectedRoleId}
-                  >
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Select a role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {roles.map((role) => (
-                        <SelectItem key={role.id} value={role.id.toString()}>
-                          {role.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-4 max-h-60 overflow-y-auto">
-                  <Label>Permissions to Remove:</Label>
-                  {permissions.map((permission) => (
-                    <div
-                      key={permission.id}
-                      className="flex items-center space-x-2"
-                    >
-                      <Checkbox
-                        id={`remove-permission-${permission.id}`}
-                        checked={selectedPermissions.includes(permission.id)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedPermissions([
-                              ...selectedPermissions,
-                              permission.id,
-                            ]);
-                          } else {
-                            setSelectedPermissions(
-                              selectedPermissions.filter(
-                                (id) => id !== permission.id
-                              )
-                            );
-                          }
-                        }}
-                      />
-                      <Label
-                        htmlFor={`remove-permission-${permission.id}`}
-                        className="text-sm font-normal"
-                      >
-                        {permission.name}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <DialogFooter>
-                <Button onClick={handleRemovePermissions} variant="destructive">
-                  Remove Permissions
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">
+          Permission Management
+        </h1>
+        <p className="text-muted-foreground">
+          View and manage system permissions
+        </p>
+      </div>
 
-          <Dialog
-            open={isAssignDialogOpen}
-            onOpenChange={setIsAssignDialogOpen}
-          >
-            <DialogTrigger asChild>
-              <Button variant="outline" onClick={openAssignDialog}>
-                <Shield className="mr-2 h-4 w-4" />
-                Assign to Role
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Assign Permissions to Role</DialogTitle>
-                <DialogDescription>
-                  Select a role and permissions to assign to it.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="assign-role" className="text-right">
-                    Role
-                  </Label>
-                  <Select
-                    value={selectedRoleId}
-                    onValueChange={setSelectedRoleId}
-                  >
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Select a role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {roles.map((role) => (
-                        <SelectItem key={role.id} value={role.id.toString()}>
-                          {role.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-4 max-h-60 overflow-y-auto">
-                  <Label>Permissions to Assign:</Label>
-                  {permissions.map((permission) => (
-                    <div
-                      key={permission.id}
-                      className="flex items-center space-x-2"
-                    >
-                      <Checkbox
-                        id={`assign-permission-${permission.id}`}
-                        checked={selectedPermissions.includes(permission.id)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedPermissions([
-                              ...selectedPermissions,
-                              permission.id,
-                            ]);
-                          } else {
-                            setSelectedPermissions(
-                              selectedPermissions.filter(
-                                (id) => id !== permission.id
-                              )
-                            );
-                          }
-                        }}
-                      />
-                      <Label
-                        htmlFor={`assign-permission-${permission.id}`}
-                        className="text-sm font-normal"
-                      >
-                        {permission.name}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <DialogFooter>
-                <Button onClick={handleAssignPermissions}>
-                  Assign Permissions
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Permissions
+            </CardTitle>
+            <Key className="h-4 w-4 text-orange-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{permissions.length}</div>
+            <p className="text-xs text-muted-foreground">System permissions</p>
+          </CardContent>
+        </Card>
 
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={openCreateDialog}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Permission
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <form onSubmit={handleSubmit}>
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingPermission
-                      ? "Edit Permission"
-                      : "Create New Permission"}
-                  </DialogTitle>
-                  <DialogDescription>
-                    {editingPermission
-                      ? "Update the permission name below."
-                      : "Enter the details for the new permission."}
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="name" className="text-right">
-                      Name
-                    </Label>
-                    <Input
-                      id="name"
-                      value={permissionName}
-                      onChange={(e) => setPermissionName(e.target.value)}
-                      className="col-span-3"
-                      placeholder="Enter permission name"
-                      required
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button type="submit">
-                    {editingPermission ? "Update" : "Create"}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Categories</CardTitle>
+            <Shield className="h-4 w-4 text-purple-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {Object.keys(permissionsByCategory).length}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Permission categories
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active</CardTitle>
+            <Lock className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{permissions.length}</div>
+            <p className="text-xs text-muted-foreground">Currently active</p>
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Key className="h-5 w-5" />
-            All Permissions
-          </CardTitle>
+          <CardTitle>All Permissions</CardTitle>
           <CardDescription>
-            A list of all permissions in your system
+            System permissions that can be assigned to roles. These are
+            predefined and cannot be modified.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="text-center py-4">Loading permissions...</div>
+          {permissions.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <Key className="h-12 w-12 text-muted-foreground/50 mb-4" />
+              <h3 className="text-lg font-semibold mb-2">
+                No permissions found
+              </h3>
+              <p className="text-muted-foreground">
+                Permissions will appear here once loaded
+              </p>
+            </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Permission</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Description</TableHead>
                   <TableHead>ID</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Created At</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {permissions.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center py-4">
-                      No permissions found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  permissions.map((permission) => (
-                    <TableRow key={permission.id}>
-                      <TableCell className="font-medium">
-                        {permission.id}
-                      </TableCell>
-                      <TableCell>{permission.name}</TableCell>
+                {permissions.map((permission, i) => {
+                  const { category, color } = getPermissionCategory(
+                    permission.name
+                  );
+                  return (
+                    <TableRow key={i}>
                       <TableCell>
-                        {permission.created_at
-                          ? new Date(permission.created_at).toLocaleDateString()
-                          : "N/A"}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEdit(permission)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDelete(permission.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                        <div className="flex items-center gap-2">
+                          <Key className="h-4 w-4 text-muted-foreground" />
+                          <code className="text-sm font-mono bg-muted px-2 py-1 rounded">
+                            {permission.name}
+                          </code>
                         </div>
                       </TableCell>
+                      <TableCell>
+                        <Badge variant={color}>{category}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-muted-foreground">
+                          {permission.name.includes("manage-users") &&
+                            "Full user management access"}
+                          {permission.name.includes("view-products") &&
+                            "View all products"}
+                          {permission.name.includes("add-products") &&
+                            "Create new products"}
+                          {permission.name.includes("delete-products") &&
+                            "Delete products"}
+                          {permission.name.includes("edit-products") &&
+                            "Edit existing products"}
+                          {!permission.name.includes("manage-users") &&
+                            !permission.name.includes("view-products") &&
+                            !permission.name.includes("add-products") &&
+                            !permission.name.includes("delete-products") &&
+                            !permission.name.includes("edit-products") &&
+                            "System permission"}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{permission.id}</Badge>
+                      </TableCell>
                     </TableRow>
-                  ))
-                )}
+                  );
+                })}
               </TableBody>
             </Table>
           )}
         </CardContent>
       </Card>
+
+      {/* Permissions by Category */}
+      <div className="grid gap-4">
+        {Object.entries(permissionsByCategory).map(
+          ([category, categoryPermissions]) => (
+            <Card key={category}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  {category}
+                </CardTitle>
+                <CardDescription>
+                  {categoryPermissions.length} permissions in this category
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {categoryPermissions.map((permission, i) => (
+                    <Badge key={i} variant="outline" className="font-mono">
+                      {permission.name}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )
+        )}
+      </div>
     </div>
   );
 }

@@ -3,7 +3,7 @@
 ## Base URL
 
 ```
-http://localhost:8000/api
+http://127.0.0.1:8000/api
 ```
 
 ## Authentication
@@ -505,6 +505,177 @@ Response (200 OK):
 ```
 
 Note: Admins cannot delete their own account. Attempting to do so will result in a 403 Forbidden response.
+
+### Role Management
+
+#### List Roles
+
+```http
+GET /admin/roles
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+> for now there are 3 roles, admin, buyer and seller
+
+Response:
+
+```json
+{
+    "message": "success",
+    "data": [
+        {
+            "id": 1,
+            "name": "admin",
+            "permissions": [
+                {
+                    "id": 1,
+                    "name": "manage-users"
+                }
+                // ... other permissions
+            ]
+        }
+        // ... other roles
+    ]
+}
+```
+
+#### Get Role
+
+```http
+GET /api/admin/roles/{id}
+```
+
+**Response:**
+
+```json
+{
+    "message": "success",
+    "data": {
+        "id": 1,
+        "name": "admin",
+        "permissions": [
+            {
+                "id": 1,
+                "name": "manage-users"
+            }
+            // ... other permissions
+        ]
+    }
+}
+```
+
+### User Role Management
+
+#### Assign Role to User
+
+**Endpoint:** `POST /api/admin/users/assign-role`
+
+**Request Body:**
+
+```json
+{
+    "user_id": 1,
+    "role_id": 1
+}
+```
+
+#### Remove Role from User
+
+**Endpoint:** `POST /api/admin/users/remove-role`
+
+**Request Body:**
+
+```json
+{
+    "user_id": 1,
+    "role_id": 1
+}
+```
+
+#### Get User's Role
+
+**Endpoint:** `GET /api/admin/users/{userId}/role`
+
+**Response:**
+
+```json
+{
+    "status": "success",
+    "data": {
+        "user": {
+            "id": 2,
+            "name": "user 4",
+            "email": "user-4@example.com",
+            "email_verified_at": "2025-06-07T19:20:25.000000Z",
+            "created_at": "2025-06-07T19:19:46.000000Z",
+            "updated_at": "2025-06-07T21:02:36.000000Z",
+            "roles": [
+                {
+                    "id": 2,
+                    "name": "seller",
+                    "guard_name": "web",
+                    "created_at": "2025-06-09T06:16:55.000000Z",
+                    "updated_at": "2025-06-09T06:16:55.000000Z",
+                    "pivot": {
+                        "user_id": 2,
+                        "role_id": 2
+                    }
+                }
+            ]
+        }
+    }
+}
+```
+
+### Permission Management
+
+#### List All Permissions
+
+```http
+GET /api/admin/permissions
+```
+
+Response:
+
+```json
+{
+    "message": "success",
+    "data": [
+        {
+            "id": 1,
+            "name": "manage-users"
+        }
+        // ... other permissions
+    ]
+}
+```
+
+#### Assign Permission to Role
+
+**Endpoint:** `POST /api/admin/permissions/assign-to-role`
+
+**Request Body:**
+
+```json
+{
+    "role_id": 1,
+    "permission_id": 1
+}
+```
+
+#### Remove Permission from Role
+
+**Endpoint:** `POST /api/admin/permissions/remove-from-role`
+
+**Request Body:**
+
+```json
+{
+    "role_id": 1,
+    "permission_id": 1
+}
+```
 
 ### Dashboard
 

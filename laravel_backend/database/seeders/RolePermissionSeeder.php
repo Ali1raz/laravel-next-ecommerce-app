@@ -15,9 +15,9 @@ class RolePermissionSeeder extends Seeder
     public function run(): void
     {
         // Create roles
-        $adminRole = Role::create(['name' => 'admin']);
-        $sellerRole = Role::create(['name' => 'seller']);
-        $buyerRole = Role::create(['name' => 'buyer']);
+        $adminRole = Role::create(['name' => 'admin', 'guard_name' => 'sanctum']);
+        $sellerRole = Role::create(['name' => 'seller', 'guard_name' => 'sanctum']);
+        $buyerRole = Role::create(['name' => 'buyer', 'guard_name' => 'sanctum']);
 
         // Create permissions
         $permissions = [
@@ -37,7 +37,7 @@ class RolePermissionSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::create(['name' => $permission, 'guard_name' => 'sanctum']);
         }
 
         // Assign permissions to roles

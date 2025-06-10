@@ -9,14 +9,7 @@ export interface User {
   name: string;
   email: string;
   role?: "admin" | "seller" | "buyer";
-  roles?: Array<{
-    id: number;
-    name: string;
-    permissions?: Array<{
-      id: number;
-      name: string;
-    }>;
-  }>;
+  roles?: Role[];
   email_verified_at: string | null;
   created_at?: string;
   updated_at?: string;

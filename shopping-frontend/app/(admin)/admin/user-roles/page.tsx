@@ -38,7 +38,8 @@ import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSkeleton } from "@/components/loading-skeleton";
 import { UserCog, Users, Shield, Loader2, Plus } from "lucide-react";
-import type { User, Role, PaginatedResponse } from "@/lib/api";
+import { PaginatedResponse, Role, User } from "@/lib/interfaces";
+import { getRoleColor } from "@/lib/constants";
 
 export default function UserRolesPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -68,9 +69,7 @@ export default function UserRolesPage() {
     try {
       const rolesData = await ApiService.getRoles();
       setRoles(rolesData || []);
-    } catch (error) {
-      console.error("Failed to load roles:", error);
-    }
+    } catch (error) {}
   };
 
   useEffect(() => {
@@ -135,19 +134,6 @@ export default function UserRolesPage() {
     setSelectedUser(user);
     setSelectedRoleId("");
     setIsDialogOpen(true);
-  };
-
-  const getRoleColor = (roleName: string) => {
-    switch (roleName.toLowerCase()) {
-      case "admin":
-        return "destructive";
-      case "seller":
-        return "default";
-      case "buyer":
-        return "secondary";
-      default:
-        return "outline";
-    }
   };
 
   if (isLoading) {

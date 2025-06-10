@@ -41,8 +41,8 @@ import {
   Loader2,
   ShoppingCart,
 } from "lucide-react";
-import type { Product } from "@/lib/api";
 import { LoadingSkeleton } from "@/components/loading-skeleton";
+import { Product } from "@/lib/interfaces";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -311,10 +311,10 @@ export default function AdminProductsPage() {
                       <TableCell>
                         <div>
                           <div className="font-medium">
-                            {product.seller.name}
+                            {product.seller?.name}
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            {product.seller.email}
+                            {product.seller?.email}
                           </div>
                         </div>
                       </TableCell>

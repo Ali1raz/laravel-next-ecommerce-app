@@ -21,7 +21,8 @@ import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSkeleton } from "@/components/loading-skeleton";
 import { Shield, Key, Users } from "lucide-react";
-import type { Role } from "@/lib/api";
+import { Role } from "@/lib/interfaces";
+import { getRoleColor, getRoleIcon } from "@/lib/constants";
 
 export default function RolesPage() {
   const [roles, setRoles] = useState<Role[]>([]);
@@ -48,32 +49,6 @@ export default function RolesPage() {
   useEffect(() => {
     fetchRoles();
   }, []);
-
-  const getRoleColor = (roleName: string) => {
-    switch (roleName.toLowerCase()) {
-      case "admin":
-        return "destructive";
-      case "seller":
-        return "default";
-      case "buyer":
-        return "secondary";
-      default:
-        return "outline";
-    }
-  };
-
-  const getRoleIcon = (roleName: string) => {
-    switch (roleName.toLowerCase()) {
-      case "admin":
-        return Shield;
-      case "seller":
-        return Users;
-      case "buyer":
-        return Users;
-      default:
-        return Shield;
-    }
-  };
 
   if (isLoading) {
     return <LoadingSkeleton type="table" count={3} />;

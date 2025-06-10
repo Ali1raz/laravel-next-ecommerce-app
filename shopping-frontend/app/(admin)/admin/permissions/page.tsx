@@ -21,7 +21,7 @@ import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSkeleton } from "@/components/loading-skeleton";
 import { Key, Shield, Lock } from "lucide-react";
-import type { Permission } from "@/lib/api";
+import { Permission } from "@/lib/interfaces";
 
 export default function PermissionsPage() {
   const [permissions, setPermissions] = useState<Permission[]>([]);

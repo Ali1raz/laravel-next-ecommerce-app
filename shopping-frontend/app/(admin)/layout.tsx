@@ -42,29 +42,18 @@ export default function AdminLayout({
     }
 
     const checkAuth = () => {
-      console.log("Admin layout - checking auth for path:", pathname);
-
       const authenticated = AuthService.isAuthenticated();
       const adminRole = AuthService.isAdmin();
-
-      console.log(
-        "Admin layout - authenticated:",
-        authenticated,
-        "isAdmin:",
-        adminRole
-      );
 
       setIsAuthenticated(authenticated);
       setIsAdmin(adminRole);
       setIsLoading(false);
 
       if (!authenticated) {
-        console.log("Admin layout - not authenticated, redirecting to login");
         router.replace("/login");
       } else if (!adminRole) {
         // If authenticated but not admin, redirect to appropriate dashboard
         const role = AuthService.getUserRole();
-        console.log("Admin layout - not admin, user role:", role);
 
         toast({
           title: "Access Denied",

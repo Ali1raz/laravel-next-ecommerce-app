@@ -21,30 +21,10 @@ import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { BarChart3, Users, Shield, Key, UserCheck, Mail } from "lucide-react";
 import { LoadingSkeleton } from "@/components/loading-skeleton";
-
-interface DashboardData {
-  analytics: {
-    total_users: number;
-    total_roles: number;
-    total_permissions: number;
-    users_by_role: Array<{
-      name: string;
-      total: number;
-    }>;
-  };
-  recent_users: Array<{
-    id: number;
-    name: string;
-    email: string;
-    roles: Array<{
-      id: number;
-      name: string;
-    }>;
-  }>;
-}
+import { AdminDashboardData } from "@/lib/interfaces";
 
 export default function AdminDashboard() {
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
+  const [dashboardData, setDashboardData] = useState<AdminDashboardData | null>(
     null
   );
   const [isLoading, setIsLoading] = useState(true);
@@ -54,7 +34,7 @@ export default function AdminDashboard() {
     const fetchDashboardData = async () => {
       try {
         const response = await ApiService.getDashboard();
-        setDashboardData(response as DashboardData);
+        setDashboardData(response as AdminDashboardData);
       } catch (error) {
         toast({
           title: "Error",
@@ -261,7 +241,7 @@ export default function AdminDashboard() {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1 flex-wrap">
-                          {user.roles?.length > 0 ? (
+                          {user.roles && user.roles?.length > 0 ? (
                             user.roles.map((role) => (
                               <Badge key={role.id} variant="outline">
                                 {role.name}

@@ -1,4 +1,5 @@
 import { AuthService } from "./auth";
+import { API_BASE_URL } from "./constants";
 import {
   AdminDashboardData,
   ApiRequestOptions,
@@ -15,9 +16,6 @@ import {
 } from "./interfaces";
 
 export class ApiService {
-  private static API_BASE_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL}`;
-  // private static API_BASE_URL = "http://127.0.0.1:8000/api";
-
   private static async request<T>(
     endpoint: string,
     options: ApiRequestOptions = {}
@@ -35,7 +33,7 @@ export class ApiService {
     }
 
     try {
-      const response = await fetch(`${ApiService.API_BASE_URL}${endpoint}`, {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: options.method || "GET",
         headers,
         body: options.body ? JSON.stringify(options.body) : undefined,

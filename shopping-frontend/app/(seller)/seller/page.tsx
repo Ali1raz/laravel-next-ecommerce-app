@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ProductCard } from "@/components/product-card";
-import { ApiService, type Product } from "@/lib/api";
+import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Search, Package, Filter } from "lucide-react";
 import { LoadingSkeleton } from "@/components/loading-skeleton";
@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AuthService } from "@/lib/auth";
+import { Product } from "@/lib/interfaces";
 
 export default function SellerHomePage() {
   const [products, setProducts] = useState<Product[]>([]);

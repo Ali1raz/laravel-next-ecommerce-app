@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ProductCard } from "@/components/product-card";
-import { ApiService, type Product } from "@/lib/api";
+import { ApiService } from "@/lib/api";
 import { AuthService } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Search, Package, Filter } from "lucide-react";
@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { DeleteConfirmationModal } from "@/components/delete-confirmation";
 import { ProductFormModal } from "@/components/product-form-modal";
+import { Product } from "@/lib/interfaces";
 
 export default function SellerProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);

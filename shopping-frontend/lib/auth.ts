@@ -1,50 +1,5 @@
-interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
-interface LoginResponse {
-  token: string;
-  user: {
-    id: number;
-    email: string;
-    name: string;
-    role?: string;
-    roles?: Array<{
-      id: number;
-      name: string;
-      permissions?: Array<{
-        id: number;
-        name: string;
-      }>;
-    }>;
-  };
-}
-
-interface ApiError {
-  message: string;
-  errors?: Record<string, string[]>;
-}
-
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  role?: "admin" | "seller" | "buyer";
-  roles?: Array<{
-    id: number;
-    name: string;
-    permissions?: Array<{
-      id: number;
-      name: string;
-    }>;
-  }>;
-  email_verified_at: string | null;
-  created_at?: string;
-  updated_at?: string;
-}
-
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL}`;
+import { API_BASE_URL } from "./constants";
+import { User } from "./interfaces";
 
 export class AuthService {
   private static USER_KEY = "user";
@@ -85,7 +40,6 @@ export class AuthService {
       // Also store token in a cookie for middleware
       document.cookie = `token=${data.token}; path=/; max-age=2592000`; // 30 days
 
-      console.log("AuthService - User logged in:", user);
       return user;
     } catch (error) {
       throw error;
@@ -109,8 +63,6 @@ export class AuthService {
 
       // Clear the cookie
       document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-
-      console.log("AuthService - User logged out");
     }
   }
 
@@ -125,7 +77,7 @@ export class AuthService {
     if (!userStr) return null;
     try {
       const user = JSON.parse(userStr) as User;
-      console.log("AuthService - Retrieved user:", user);
+
       return user;
     } catch {
       return null;
@@ -135,7 +87,6 @@ export class AuthService {
   static setUser(user: User): void {
     if (typeof window === "undefined") return;
     localStorage.setItem(this.USER_KEY, JSON.stringify(user));
-    console.log("AuthService - User stored:", user);
   }
 
   static updateUserRole(newRole: string): void {
@@ -147,7 +98,6 @@ export class AuthService {
         user.roles = [{ id: 1, name: newRole }];
       }
       this.setUser(user);
-      console.log("AuthService - User role updated:", newRole);
     }
   }
 
@@ -155,7 +105,7 @@ export class AuthService {
     const token = this.getToken();
     const user = this.getUser();
     const isAuth = !!(token && user);
-    console.log("AuthService - Is authenticated:", isAuth);
+
     return isAuth;
   }
 

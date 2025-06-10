@@ -28,8 +28,8 @@ import {
   Loader2,
   CreditCard,
 } from "lucide-react";
-import type { CartItem } from "@/lib/api";
 import Link from "next/link";
+import { CartItem } from "@/lib/interfaces";
 
 export default function AdminCartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -233,7 +233,7 @@ export default function AdminCartPage() {
                               {item.product.title}
                             </div>
                             <div className="text-sm text-muted-foreground">
-                              by {item.product.seller.name} • Stock:{" "}
+                              by {item.product.seller?.name} • Stock:{" "}
                               {item.product.quantity}
                             </div>
                           </div>
@@ -264,9 +264,12 @@ export default function AdminCartPage() {
                               type="number"
                               value={item.quantity}
                               onChange={(e) => {
-                                const newQuantity = Number.parseInt(
-                                  e.target.value
-                                );
+                                const value = e.target.value;
+                                if (value === "") return;
+
+                                const newQuantity = parseInt(value);
+                                if (isNaN(newQuantity)) return;
+
                                 if (
                                   newQuantity > 0 &&
                                   newQuantity <= item.product.quantity
@@ -280,6 +283,21 @@ export default function AdminCartPage() {
                                     description: `Only ${item.product.quantity} items available`,
                                     variant: "destructive",
                                   });
+                                }
+                              }}
+                              onBlur={(e) => {
+                                const value = e.target.value;
+                                if (value === "" || parseInt(value) < 1) {
+                                  updateQuantity(item.product.id, 1);
+                                }
+                              }}
+                              onKeyDown={(e) => {
+                                if (
+                                  e.key === "-" ||
+                                  e.key === "e" ||
+                                  e.key === "."
+                                ) {
+                                  e.preventDefault();
                                 }
                               }}
                               className="w-16 text-center"

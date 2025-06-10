@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ApiService, type CartItem } from "@/lib/api";
+import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import {
   ShoppingCart,
@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { LoadingSkeleton } from "@/components/loading-skeleton";
 import Link from "next/link";
+import type { CartItem } from "@/lib/interfaces";
 
 export default function SellerCartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -242,12 +243,38 @@ export default function SellerCartPage() {
                           max={item.product.quantity}
                           value={item.quantity}
                           onChange={(e) => {
-                            const newQuantity = Number.parseInt(e.target.value);
+                            const value = e.target.value;
+                            if (value === "") return;
+
+                            const newQuantity = parseInt(value);
+                            if (isNaN(newQuantity)) return;
+
                             if (
-                              newQuantity >= 1 &&
+                              newQuantity > 0 &&
                               newQuantity <= item.product.quantity
                             ) {
                               updateQuantity(item.product.id, newQuantity);
+                            } else if (newQuantity > item.product.quantity) {
+                              toast({
+                                title: "Insufficient Stock",
+                                description: `Only ${item.product.quantity} items available`,
+                                variant: "destructive",
+                              });
+                            }
+                          }}
+                          onBlur={(e) => {
+                            const value = e.target.value;
+                            if (value === "" || parseInt(value) < 1) {
+                              updateQuantity(item.product.id, 1);
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (
+                              e.key === "-" ||
+                              e.key === "e" ||
+                              e.key === "."
+                            ) {
+                              e.preventDefault();
                             }
                           }}
                           className="w-16 text-center"

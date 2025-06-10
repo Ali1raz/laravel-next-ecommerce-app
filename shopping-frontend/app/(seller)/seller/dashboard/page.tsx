@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ApiService, type Bill } from "@/lib/api";
+import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSkeleton } from "@/components/loading-skeleton";
 import {
@@ -22,6 +22,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Bill } from "@/lib/interfaces";
 
 export default function SellerDashboardPage() {
   const [dashboardData, setDashboardData] = useState<{

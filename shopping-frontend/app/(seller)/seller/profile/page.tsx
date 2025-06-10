@@ -1,6 +1,6 @@
 "use client";
 
-import type React from "react";
+import React from "react";
 
 import { useEffect, useState } from "react";
 import {
@@ -13,12 +13,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { ApiService } from "@/lib/api";
 import { AuthService } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
-import { Store, Calendar, Loader2, Save } from "lucide-react";
-import type { User } from "@/lib/api";
+import {
+  Calendar,
+  Loader2,
+  Save,
+  User as UserIcon,
+  Mail,
+  Building2,
+} from "lucide-react";
+import { User } from "@/lib/interfaces";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 
 export default function SellerProfilePage() {
   const [user, setUser] = useState<User | null>(null);
@@ -27,10 +35,6 @@ export default function SellerProfilePage() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    storeName: "My Store",
-    phone: "",
-    address: "",
-    description: "",
   });
   const { toast } = useToast();
 
@@ -42,10 +46,6 @@ export default function SellerProfilePage() {
       setFormData({
         name: data.name || "",
         email: data.email || "",
-        storeName: "My Store", // This should come from API when available
-        phone: "",
-        address: "",
-        description: "",
       });
     } catch (error) {
       toast({
@@ -61,10 +61,6 @@ export default function SellerProfilePage() {
         setFormData({
           name: localUser.name || "",
           email: localUser.email || "",
-          storeName: "My Store",
-          phone: "",
-          address: "",
-          description: "",
         });
       }
     } finally {
@@ -117,9 +113,9 @@ export default function SellerProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="container mx-auto py-8 space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Store Profile</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Your Profile</h1>
           <p className="text-muted-foreground">Loading profile...</p>
         </div>
         <div className="flex items-center justify-center py-12">
@@ -130,65 +126,66 @@ export default function SellerProfilePage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Store Profile</h1>
-        <p className="text-muted-foreground">Manage your store information</p>
+    <div className="container mx-auto py-8 space-y-8">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-bold tracking-tight">Your Profile</h1>
+        <p className="text-muted-foreground">
+          Manage your account information and preferences
+        </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Store Information</CardTitle>
-            <CardDescription>Your store details</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-3">
-              <Store className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="font-medium">{formData.storeName}</p>
-                <p className="text-sm text-muted-foreground">Store Name</p>
+      <div className="grid gap-8 md:grid-cols-3">
+        {/* Profile Overview Card */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Profile Overview</CardTitle>
+              <CardDescription>Your account information</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex flex-col items-center space-y-4">
+                <div className="text-center">
+                  <h3 className="text-lg font-semibold">{user?.name}</h3>
+                  <p className="text-sm text-muted-foreground">{user?.email}</p>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Calendar className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="font-medium">
-                  {user?.created_at
-                    ? new Date(user.created_at).toLocaleDateString()
-                    : "N/A"}
-                </p>
-                <p className="text-sm text-muted-foreground">Seller Since</p>
+              <Separator />
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      Member since
+                    </p>
+                    <p className="font-medium">
+                      {user?.created_at
+                        ? new Date(user.created_at).toLocaleDateString()
+                        : "N/A"}
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
 
+        {/* Update Profile Form */}
         <div className="md:col-span-2">
           <form onSubmit={handleSubmit}>
             <Card>
               <CardHeader>
                 <CardTitle>Update Profile</CardTitle>
                 <CardDescription>
-                  Update your store and contact information
+                  Update your personal information and contact details
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="storeName">Store Name</Label>
-                    <Input
-                      id="storeName"
-                      value={formData.storeName}
-                      onChange={(e) =>
-                        setFormData({ ...formData, storeName: e.target.value })
-                      }
-                      placeholder="Enter store name"
-                      disabled={isSaving}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Owner Name</Label>
+                    <Label htmlFor="name" className="flex items-center gap-2">
+                      <UserIcon className="h-4 w-4" />
+                      Owner Name
+                    </Label>
                     <Input
                       id="name"
                       value={formData.name}
@@ -198,13 +195,15 @@ export default function SellerProfilePage() {
                       placeholder="Enter your name"
                       required
                       disabled={isSaving}
+                      className="w-full"
                     />
                   </div>
-                </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
+                    <Label htmlFor="email" className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      Email Address
+                    </Label>
                     <Input
                       id="email"
                       type="email"
@@ -215,50 +214,16 @@ export default function SellerProfilePage() {
                       placeholder="Enter your email"
                       required
                       disabled={isSaving}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(e) =>
-                        setFormData({ ...formData, phone: e.target.value })
-                      }
-                      placeholder="Enter phone number"
-                      disabled={isSaving}
+                      className="w-full"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="address">Business Address</Label>
-                  <Input
-                    id="address"
-                    value={formData.address}
-                    onChange={(e) =>
-                      setFormData({ ...formData, address: e.target.value })
-                    }
-                    placeholder="Enter business address"
-                    disabled={isSaving}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="description">Store Description</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
-                    placeholder="Describe your store and products"
-                    rows={3}
-                    disabled={isSaving}
-                  />
-                </div>
-
-                <Button type="submit" disabled={isSaving}>
+                <Button
+                  type="submit"
+                  disabled={isSaving}
+                  className="w-full sm:w-auto"
+                >
                   {isSaving ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />

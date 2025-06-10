@@ -20,7 +20,7 @@ import {
 import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Package, Loader2, ShoppingBag, DollarSign } from "lucide-react";
-import type { Bill } from "@/lib/api";
+import type { Bill } from "@/lib/interfaces";
 
 export default function SellerOrdersPage() {
   const [orders, setOrders] = useState<Bill[]>([]);

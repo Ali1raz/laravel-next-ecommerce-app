@@ -37,13 +37,8 @@ class ProductController extends Controller
                 'description' => 'required|string',
                 'price' => 'required|numeric|min:1',
                 'quantity' => 'required|integer|min:1',
-                'image' => 'required|image|max:2048'
+                'image' => 'nullable|string|url|max:2048'
             ]);
-
-            $imagePath = null;
-            if ($request->hasFile('image')) {
-                $imagePath = $request->file('image')->store('products', 'public');
-            }
 
             $product = Product::create([
                 'title' => $request->title,
@@ -51,10 +46,8 @@ class ProductController extends Controller
                 'price' => $request->price,
                 'quantity' => $request->quantity,
                 'seller_id' => Auth::id(),
-                'image' => $imagePath
+                'image' => $request->image ?? null
             ]);
-
-            $product->image = $product->image ? asset('storage/' . $product->image) : null;
 
             return response()->json([
                 'status' => 'success',
@@ -103,7 +96,7 @@ class ProductController extends Controller
                 'description' => 'sometimes|string',
                 'price' => 'sometimes|numeric|min:1',
                 'quantity' => 'sometimes|integer|min:1',
-                'image' => 'sometimes|image|max:2048'
+                'image' => 'nullable|string|url|max:2048'
             ]);
 
             $updateData = [];
@@ -119,13 +112,12 @@ class ProductController extends Controller
             if ($request->has('quantity')) {
                 $updateData['quantity'] = $request->quantity;
             }
-            if ($request->hasFile('image')) {
-                $updateData['image'] = $request->file('image')->store('products', 'public');
+            if ($request->has('image')) {
+                $updateData['image'] = $request->image;
             }
 
             $product->update($updateData);
             $product = $product->fresh();
-            $product->image = $product->image ? asset('storage/' . $product->image) : null;
 
             return response()->json([
                 'status' => 'success',

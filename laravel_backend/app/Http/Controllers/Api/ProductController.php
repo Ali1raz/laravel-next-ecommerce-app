@@ -64,44 +64,6 @@ class ProductController extends Controller
         }
     }
 
-    public function store(Request $request)
-    {
-        try {
-            $request->validate([
-                'title' => 'required|string|max:255',
-                'description' => 'required|string',
-                'price' => 'required|numeric|min:1',
-                'quantity' => 'required|integer|min:1',
-                'image' => 'required|image|max:2048'
-            ]);
-
-            $product = Product::create([
-                'title' => $request->title,
-                'description' => $request->description,
-                'price' => $request->price,
-                'quantity' => $request->quantity,
-                'seller_id' => Auth::id(),
-                'image' => $request->file('image')->store('products', 'public')
-            ]);
-
-            $product->image = $product->image ? asset('storage/' . $product->image) : null;
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Product created successfully',
-                'data' => $product
-            ], 201);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => $e->errors()
-            ], 422);
-        } catch (Throwable $e) {
-            return $this->handleException($e);
-        }
-    }
-
     protected function handleException(Throwable $e)
     {
         if ($e instanceof HttpException) {

@@ -1429,14 +1429,21 @@ Response:
     "data": [
         {
             "id": 1,
-            "title": "Product 1",
-            "description": "Description 1",
-            "price": 99.99,
-            "quantity": 10,
+            "title": "jordan sneakers",
+            "description": "for sale",
+            "price": 10,
+            "quantity": 1,
+            "seller_id": 3,
+            "created_at": "2025-06-19T17:14:45.000000Z",
+            "updated_at": "2025-06-19T17:14:45.000000Z",
+            "image": "http://127.0.0.1:8000/storage/https://raw.githubusercontent.com/react-dropzone/react-dropzone/master/logo/logo.png",
             "seller": {
-                "id": 2,
-                "name": "Seller Name",
-                "email": "seller@example.com"
+                "id": 3,
+                "name": "...",
+                "email": "...",
+                "email_verified_at": "2025-06-19T13:41:26.000000Z",
+                "created_at": "2025-06-19T13:41:26.000000Z",
+                "updated_at": "2025-06-19T13:41:26.000000Z"
             }
         }
     ]
@@ -1456,14 +1463,21 @@ Response:
     "status": "success",
     "data": {
         "id": 1,
-        "title": "Product 1",
-        "description": "Description 1",
-        "price": 99.99,
-        "quantity": 10,
+        "title": "jordan sneakers",
+        "description": "for sale",
+        "price": 10,
+        "quantity": 1,
+        "seller_id": 3,
+        "created_at": "2025-06-19T17:14:45.000000Z",
+        "updated_at": "2025-06-19T17:14:45.000000Z",
+        "image": "http://127.0.0.1:8000/storage/https://raw.githubusercontent.com/react-dropzone/react-dropzone/master/logo/logo.png",
         "seller": {
-            "id": 2,
-            "name": "Seller Name",
-            "email": "seller@example.com"
+            "id": 3,
+            "name": "...",
+            "email": "...",
+            "email_verified_at": "2025-06-19T13:41:26.000000Z",
+            "created_at": "2025-06-19T13:41:26.000000Z",
+            "updated_at": "2025-06-19T13:41:26.000000Z"
         }
     }
 }
@@ -1479,10 +1493,11 @@ Request:
 
 ```json
 {
-    "title": "LED",
-    "description": "Amoled, 32' long description",
-    "price": "10.00",
-    "quantity": 4
+    "title": "jordan sneakers",
+    "description": "for sale",
+    "quantity": 1,
+    "price": 10,
+    "image": "https://raw.githubusercontent.com/react-dropzone/react-dropzone/master/logo/logo.png"
 }
 ```
 
@@ -1493,14 +1508,15 @@ Response:
     "status": "success",
     "message": "Product created successfully",
     "data": {
-        "title": "LED",
-        "description": "Amoled, 32' long description",
-        "price": "10.00",
-        "quantity": 4,
-        "seller_id": 2,
-        "updated_at": "2025-06-09T04:52:03.000000Z",
-        "created_at": "2025-06-09T04:52:03.000000Z",
-        "id": 9
+        "title": "jordan sneakers",
+        "description": "for sale",
+        "price": 10,
+        "quantity": 1,
+        "seller_id": 3,
+        "image": "https://raw.githubusercontent.com/react-dropzone/react-dropzone/master/logo/logo.png",
+        "updated_at": "2025-06-19T17:14:45.000000Z",
+        "created_at": "2025-06-19T17:14:45.000000Z",
+        "id": 1
     }
 }
 ```

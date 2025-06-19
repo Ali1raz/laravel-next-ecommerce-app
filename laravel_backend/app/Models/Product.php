@@ -14,7 +14,8 @@ class Product extends Model
         'description',
         'price',
         'quantity',
-        'seller_id'
+        'seller_id',
+        'image'
     ];
 
     public function seller()

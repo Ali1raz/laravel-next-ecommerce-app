@@ -17,7 +17,9 @@ class ProductController extends Controller
     {
         try {
             $products = Product::where('seller_id', Auth::id())->get();
-
+            foreach ($products as $product) {
+                $product->image = $product->image ? asset('storage/' . $product->image) : null;
+            }
             return response()->json([
                 'status' => 'success',
                 'data' => $products
@@ -34,16 +36,25 @@ class ProductController extends Controller
                 'title' => 'required|string|max:255',
                 'description' => 'required|string',
                 'price' => 'required|numeric|min:1',
-                'quantity' => 'required|integer|min:1'
+                'quantity' => 'required|integer|min:1',
+                'image' => 'required|image|max:2048'
             ]);
+
+            $imagePath = null;
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('products', 'public');
+            }
 
             $product = Product::create([
                 'title' => $request->title,
                 'description' => $request->description,
                 'price' => $request->price,
                 'quantity' => $request->quantity,
-                'seller_id' => Auth::id()
+                'seller_id' => Auth::id(),
+                'image' => $imagePath
             ]);
+
+            $product->image = $product->image ? asset('storage/' . $product->image) : null;
 
             return response()->json([
                 'status' => 'success',
@@ -66,7 +77,7 @@ class ProductController extends Controller
         try {
             $product = Product::where('seller_id', Auth::id())
                 ->findOrFail($id);
-
+            $product->image = $product->image ? asset('storage/' . $product->image) : null;
             return response()->json([
                 'status' => 'success',
                 'data' => $product
@@ -91,10 +102,10 @@ class ProductController extends Controller
                 'title' => 'sometimes|string|max:255',
                 'description' => 'sometimes|string',
                 'price' => 'sometimes|numeric|min:1',
-                'quantity' => 'sometimes|integer|min:1'
+                'quantity' => 'sometimes|integer|min:1',
+                'image' => 'sometimes|image|max:2048'
             ]);
 
-            // Only update fields that are provided
             $updateData = [];
             if ($request->has('title')) {
                 $updateData['title'] = $request->title;
@@ -108,8 +119,13 @@ class ProductController extends Controller
             if ($request->has('quantity')) {
                 $updateData['quantity'] = $request->quantity;
             }
+            if ($request->hasFile('image')) {
+                $updateData['image'] = $request->file('image')->store('products', 'public');
+            }
 
             $product->update($updateData);
+            $product = $product->fresh();
+            $product->image = $product->image ? asset('storage/' . $product->image) : null;
 
             return response()->json([
                 'status' => 'success',

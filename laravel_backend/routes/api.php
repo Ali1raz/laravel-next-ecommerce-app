@@ -54,10 +54,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index']);
 
         // Role management
-        Route::apiResource('roles', RoleController::class);
+        Route::get('roles', [RoleController::class, 'index']);
+        Route::get('roles/{role}', [RoleController::class, 'show']);
 
         // Permission management
-        Route::apiResource('permissions', PermissionController::class);
+        Route::get('permissions', [PermissionController::class, 'index']);
+        Route::get('permissions/{permission}', [PermissionController::class, 'show']);
         Route::post('permissions/assign-to-role', [PermissionController::class, 'assignToRole']);
         Route::post('permissions/remove-from-role', [PermissionController::class, 'removeFromRole']);
 

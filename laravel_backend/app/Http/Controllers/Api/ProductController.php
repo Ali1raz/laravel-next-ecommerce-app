@@ -28,7 +28,9 @@ class ProductController extends Controller
                     return $query->where('seller_id', '!=', Auth::id());
                 })
                 ->get();
-
+            foreach ($products as $product) {
+                $product->image = $product->image ? asset('storage/' . $product->image) : null;
+            }
             return response()->json([
                 'status' => 'success',
                 'data' => $products
@@ -47,7 +49,7 @@ class ProductController extends Controller
                     return $query->where('seller_id', '!=', Auth::id());
                 })
                 ->findOrFail($id);
-
+            $product->image = $product->image ? asset('storage/' . $product->image) : null;
             return response()->json([
                 'status' => 'success',
                 'data' => $product
@@ -69,7 +71,8 @@ class ProductController extends Controller
                 'title' => 'required|string|max:255',
                 'description' => 'required|string',
                 'price' => 'required|numeric|min:1',
-                'quantity' => 'required|integer|min:1'
+                'quantity' => 'required|integer|min:1',
+                'image' => 'required|image|max:2048'
             ]);
 
             $product = Product::create([
@@ -77,8 +80,11 @@ class ProductController extends Controller
                 'description' => $request->description,
                 'price' => $request->price,
                 'quantity' => $request->quantity,
-                'seller_id' => Auth::id()
+                'seller_id' => Auth::id(),
+                'image' => $request->file('image')->store('products', 'public')
             ]);
+
+            $product->image = $product->image ? asset('storage/' . $product->image) : null;
 
             return response()->json([
                 'status' => 'success',

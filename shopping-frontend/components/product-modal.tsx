@@ -19,17 +19,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { ApiService, type Product } from "@/lib/api";
+import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import {
-  ShoppingCart,
-  Loader2,
-  User,
-  Star,
-  Shield,
-  Truck,
-  RotateCcw,
-} from "lucide-react";
+import { ShoppingCart, Loader2, User } from "lucide-react";
+import { Product } from "@/lib/interfaces";
 
 interface ProductModalProps {
   product: Product;

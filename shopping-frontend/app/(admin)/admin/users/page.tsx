@@ -50,7 +50,7 @@ import {
   Loader2,
   UserCog,
 } from "lucide-react";
-import type { User, Role, PaginatedResponse } from "@/lib/api";
+import { PaginatedResponse, Role, User } from "@/lib/interfaces";
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);

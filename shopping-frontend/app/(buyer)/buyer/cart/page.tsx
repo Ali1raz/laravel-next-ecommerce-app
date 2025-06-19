@@ -22,9 +22,9 @@ import {
   CreditCard,
   ArrowLeft,
 } from "lucide-react";
-import type { CartItem } from "@/lib/api";
 import Link from "next/link";
 import Image from "next/image";
+import { CartItem } from "@/lib/interfaces";
 
 export default function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -219,7 +219,7 @@ export default function CartPage() {
                               {item.product.title}
                             </h3>
                             <p className="text-sm text-muted-foreground">
-                              by {item.product.seller.name}
+                              by {item.product.seller?.name}
                             </p>
                           </div>
 

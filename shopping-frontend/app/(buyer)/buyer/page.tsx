@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { ApiService, type Product } from "@/lib/api";
+import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSkeleton } from "@/components/loading-skeleton";
 import { ProductCard } from "@/components/product-card";
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Package, Search, SlidersHorizontal } from "lucide-react";
+import { Product } from "@/lib/interfaces";
 
 export default function BuyerDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -70,7 +71,7 @@ export default function BuyerDashboard() {
           product.description
             .toLowerCase()
             .includes(searchQuery.toLowerCase()) ||
-          product.seller.name.toLowerCase().includes(searchQuery.toLowerCase())
+          product.seller?.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 

@@ -284,97 +284,101 @@ export default function AdminProductsPage() {
               </Button>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead>Seller</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Stock</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {products.map((product) => {
-                  const stockStatus = getStockStatus(product.quantity);
-                  return (
-                    <TableRow key={product.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{product.title}</div>
-                          <div className="text-sm text-muted-foreground line-clamp-1">
-                            {product.description}
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Product</TableHead>
+                    <TableHead>Seller</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Stock</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {products.map((product) => {
+                    const stockStatus = getStockStatus(product.quantity);
+                    return (
+                      <TableRow key={product.id}>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{product.title}</div>
+                            <div className="text-sm text-muted-foreground line-clamp-1">
+                              {product.description}
+                            </div>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">
-                            {product.seller?.name}
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">
+                              {product.seller?.name}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {product.seller?.email}
+                            </div>
                           </div>
-                          <div className="text-sm text-muted-foreground">
-                            {product.seller?.email}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>${Number(product.price).toFixed(2)}</TableCell>
-                      <TableCell>
-                        <span
-                          className={
-                            product.quantity < 10 && product.quantity > 0
-                              ? "text-orange-600 font-medium"
-                              : product.quantity === 0
-                              ? "text-red-600 font-medium"
-                              : ""
-                          }
-                        >
-                          {product.quantity}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={stockStatus.variant}>
-                          {stockStatus.label}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleAddToCart(product.id)}
-                            disabled={
-                              product.quantity === 0 ||
-                              addingToCart === product.id
+                        </TableCell>
+                        <TableCell>
+                          ${Number(product.price).toFixed(2)}
+                        </TableCell>
+                        <TableCell>
+                          <span
+                            className={
+                              product.quantity < 10 && product.quantity > 0
+                                ? "text-orange-600 font-medium"
+                                : product.quantity === 0
+                                ? "text-red-600 font-medium"
+                                : ""
                             }
                           >
-                            {addingToCart === product.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <ShoppingCart className="h-4 w-4" />
-                            )}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEdit(product)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDelete(product.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                            {product.quantity}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={stockStatus.variant}>
+                            {stockStatus.label}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleAddToCart(product.id)}
+                              disabled={
+                                product.quantity === 0 ||
+                                addingToCart === product.id
+                              }
+                            >
+                              {addingToCart === product.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <ShoppingCart className="h-4 w-4" />
+                              )}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEdit(product)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDelete(product.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>

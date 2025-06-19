@@ -14,10 +14,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ApiService, type User } from "@/lib/api";
+import { ApiService } from "@/lib/api";
 import { AuthService } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Save } from "lucide-react";
+import { User } from "@/lib/interfaces";
 
 interface ProfileModalProps {
   user: User | null;

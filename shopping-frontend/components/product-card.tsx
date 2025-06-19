@@ -7,9 +7,10 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ProductModal } from "@/components/product-modal";
-import { ApiService, type Product } from "@/lib/api";
+import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, ShoppingCart, Loader2, Edit, Trash2 } from "lucide-react";
+import { Product } from "@/lib/interfaces";
 
 interface ProductCardProps {
   product: Product;

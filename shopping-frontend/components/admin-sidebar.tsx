@@ -46,7 +46,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
-import type { User } from "@/lib/auth";
+import { User } from "@/lib/interfaces";
 
 const data = {
   navMain: [

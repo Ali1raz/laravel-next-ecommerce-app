@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { ApiService, type Product } from "@/lib/api";
+import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSkeleton } from "@/components/loading-skeleton";
 import { ProductCard } from "@/components/product-card";
@@ -23,6 +23,7 @@ import {
   Grid3X3,
   List,
 } from "lucide-react";
+import { Product } from "@/lib/interfaces";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -78,7 +79,7 @@ export default function ProductsPage() {
           product.description
             .toLowerCase()
             .includes(searchQuery.toLowerCase()) ||
-          product.seller.name.toLowerCase().includes(searchQuery.toLowerCase())
+          product.seller?.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 

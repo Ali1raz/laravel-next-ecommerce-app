@@ -28,7 +28,7 @@ import {
 import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { ShoppingBag, Eye, Loader2, Package } from "lucide-react";
-import type { Bill } from "@/lib/api";
+import { Bill } from "@/lib/interfaces";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Bill[]>([]);
@@ -260,7 +260,7 @@ export default function OrdersPage() {
                               {item.product.title}
                             </div>
                             <div className="text-sm text-muted-foreground">
-                              by {item.product.seller.name}
+                              by {item.product.seller?.name}
                             </div>
                           </div>
                         </TableCell>

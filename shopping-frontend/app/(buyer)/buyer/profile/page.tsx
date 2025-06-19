@@ -10,12 +10,13 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ApiService, type User } from "@/lib/api";
+import { ApiService } from "@/lib/api";
 import { AuthService } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSkeleton } from "@/components/loading-skeleton";
 import { UserIcon, Mail, Calendar, Shield, Edit } from "lucide-react";
 import { ProfileModal } from "@/components/profile-model";
+import { Permission, User } from "@/lib/interfaces";
 
 export default function BuyerProfilePage() {
   const [user, setUser] = useState<User | null>(null);
@@ -217,15 +218,17 @@ export default function BuyerProfilePage() {
                 <div>
                   <label className="text-sm font-medium">Permissions</label>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {user.roles[0].permissions?.map((permission) => (
-                      <Badge
-                        key={permission.id}
-                        variant="outline"
-                        className="text-xs"
-                      >
-                        {permission.name}
-                      </Badge>
-                    )) || (
+                    {user.roles[0].permissions?.map(
+                      (permission: Permission) => (
+                        <Badge
+                          key={permission.id}
+                          variant="outline"
+                          className="text-xs"
+                        >
+                          {permission.name}
+                        </Badge>
+                      )
+                    ) || (
                       <p className="text-sm text-muted-foreground">
                         No specific permissions assigned
                       </p>

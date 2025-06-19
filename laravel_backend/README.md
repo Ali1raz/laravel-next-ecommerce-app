@@ -540,6 +540,14 @@ Response:
 }
 ```
 
+other roles are:
+
+```
+admin,
+seller,
+buyer
+```
+
 #### Get Role
 
 ```http
@@ -651,6 +659,59 @@ Response:
 }
 ```
 
+other permissions are:
+
+```json
+view-users
+create-users
+edit-users
+delete-users
+view-roles
+change-roles
+view-permissions
+change-permissions
+view-products
+create-products
+edit-products
+delete-products
+view-cart
+add-to-cart
+remove-from-cart
+view-bills
+```
+
+#### Show a Permission
+
+```http
+GET /api/admin/permissions/{id}
+```
+
+Response:
+
+```json
+{
+    "message": "success",
+    "data": {
+        "id": 1,
+        "name": "view-users",
+        "guard_name": "web",
+        "roles": [
+            {
+                "id": 1,
+                "name": "admin",
+                "guard_name": "web",
+                "created_at": "2025-06-19T13:37:21.000000Z",
+                "updated_at": "2025-06-19T13:37:21.000000Z",
+                "pivot": {
+                    "permission_id": 1,
+                    "role_id": 1
+                }
+            }
+        ]
+    }
+}
+```
+
 #### Assign Permission to Role
 
 **Endpoint:** `POST /api/admin/permissions/assign-to-role`
@@ -660,7 +721,7 @@ Response:
 ```json
 {
     "role_id": 1,
-    "permission_id": 1
+    "permission_ids": [1]
 }
 ```
 
@@ -673,7 +734,7 @@ Response:
 ```json
 {
     "role_id": 1,
-    "permission_id": 1
+    "permission_ids": [1]
 }
 ```
 

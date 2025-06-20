@@ -126,7 +126,7 @@ export function BuyerHeader({ onCartUpdate, onSearch }: BuyerHeaderProps) {
           isScrolled ? "shadow-md" : ""
         }`}
       >
-        <div className="container flex h-16 items-center justify-between px-4">
+        <div className="container flex h-16 items-center justify-between px-4 max-w-6xl mx-auto">
           <div className="flex items-center gap-6">
             <Link
               href="/buyer"

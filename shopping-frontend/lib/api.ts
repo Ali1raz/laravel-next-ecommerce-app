@@ -1,6 +1,6 @@
 import { AuthService } from "./auth";
 import { API_BASE_URL } from "./constants";
-import {
+import type {
   AdminDashboardData,
   ApiRequestOptions,
   ApiResponse,
@@ -197,7 +197,7 @@ export class ApiService {
     });
   }
 
-  static async getUserRole(userId: number): Promise<Role> {
+  static async getUserRole(userId: number): Promise<{ user: User }> {
     return this.request(`/admin/users/${userId}/role`);
   }
 
@@ -216,16 +216,16 @@ export class ApiService {
 
   // Product endpoints - Updated to include seller information
   static async getProducts(): Promise<Product[]> {
-    return this.request("/products?include=seller,user");
+    return this.request("/products");
   }
 
   static async getProduct(id: number): Promise<Product> {
-    return this.request(`/products/${id}?include=seller,user`);
+    return this.request(`/products/${id}`);
   }
 
   // Seller product management
   static async getSellerProducts(): Promise<Product[]> {
-    return this.request("/seller/products?include=seller,user");
+    return this.request("/seller/products");
   }
 
   static async createSellerProduct(data: {
@@ -233,6 +233,7 @@ export class ApiService {
     description: string;
     price: number | string;
     quantity: number;
+    image?: string;
   }): Promise<Product> {
     return this.request("/seller/products", {
       method: "POST",
@@ -247,6 +248,7 @@ export class ApiService {
       description?: string;
       price?: number | string;
       quantity?: number;
+      image?: string;
     }
   ): Promise<Product> {
     return this.request(`/seller/products/${id}`, {
@@ -263,7 +265,7 @@ export class ApiService {
 
   // Admin product management
   static async getAdminProducts(): Promise<Product[]> {
-    return this.request("/admin/products?include=seller,user");
+    return this.request("/admin/products");
   }
 
   static async createAdminProduct(data: {
@@ -271,6 +273,7 @@ export class ApiService {
     description: string;
     price: number | string;
     quantity: number;
+    image?: string;
   }): Promise<Product> {
     return this.request("/admin/products", {
       method: "POST",
@@ -279,7 +282,7 @@ export class ApiService {
   }
 
   static async getAdminProduct(id: number): Promise<Product> {
-    return this.request(`/admin/products/${id}?include=seller,user`);
+    return this.request(`/admin/products/${id}`);
   }
 
   static async updateAdminProduct(
@@ -289,6 +292,7 @@ export class ApiService {
       description?: string;
       price?: number | string;
       quantity?: number;
+      image?: string;
     }
   ): Promise<Product> {
     return this.request(`/admin/products/${id}`, {
@@ -347,11 +351,6 @@ export class ApiService {
     });
   }
 
-  // Dashboard endpoint - fix the method name
-  static async getDashboard(): Promise<AdminDashboardData> {
-    return this.request("/admin/dashboard");
-  }
-
   // Role management endpoints
   static async getRoles(): Promise<Role[]> {
     return this.request("/admin/roles");
@@ -366,9 +365,13 @@ export class ApiService {
     return this.request("/admin/permissions");
   }
 
+  static async getPermission(id: number): Promise<Permission> {
+    return this.request(`/admin/permissions/${id}`);
+  }
+
   static async assignPermissionToRole(data: {
     role_id: number;
-    permission_id: number;
+    permission_ids: number[];
   }): Promise<void> {
     return this.request("/admin/permissions/assign-to-role", {
       method: "POST",
@@ -378,7 +381,7 @@ export class ApiService {
 
   static async removePermissionFromRole(data: {
     role_id: number;
-    permission_id: number;
+    permission_ids: number[];
   }): Promise<void> {
     return this.request("/admin/permissions/remove-from-role", {
       method: "POST",

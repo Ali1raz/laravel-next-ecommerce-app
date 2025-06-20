@@ -9,8 +9,17 @@ import { Badge } from "@/components/ui/badge";
 import { ProductModal } from "@/components/product-modal";
 import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, ShoppingCart, Loader2, Edit, Trash2 } from "lucide-react";
-import { Product } from "@/lib/interfaces";
+import {
+  Eye,
+  ShoppingCart,
+  Loader2,
+  Edit,
+  Trash2,
+  ExternalLink,
+} from "lucide-react";
+import type { Product } from "@/lib/interfaces";
+import Link from "next/link";
+import { formatPrice } from "@/lib/utils";
 
 interface ProductCardProps {
   product: Product;
@@ -18,6 +27,7 @@ interface ProductCardProps {
   isOwnProduct?: boolean;
   onEdit?: (product: Product) => void;
   onDelete?: (productId: number) => void;
+  showDetailsLink?: boolean;
 }
 
 const StockBadge = ({ quantity }: { quantity: number }) => {
@@ -38,7 +48,22 @@ const ProductImage = ({
     className="aspect-square relative cursor-pointer overflow-hidden"
     onClick={onClick}
   >
-    <div className="bg-gray-600 absolute inset-0" />
+    {product.image ? (
+      <img
+        src={product.image || "/placeholder.svg"}
+        alt={product.title}
+        className="w-full h-full object-cover transition-transform hover:scale-105"
+        onError={(e) => {
+          e.currentTarget.src = "/placeholder.svg?height=200&width=200";
+        }}
+      />
+    ) : (
+      <div className="bg-gray-600 absolute inset-0 flex items-center justify-center">
+        <span className="text-white text-sm font-medium text-center px-2">
+          {product.title}
+        </span>
+      </div>
+    )}
     {product.quantity <= 0 && (
       <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
         <Badge variant="destructive" className="text-sm font-medium px-4 py-2">
@@ -58,6 +83,7 @@ export function ProductCard({
   isOwnProduct,
   onEdit,
   onDelete,
+  showDetailsLink = false,
 }: ProductCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
@@ -94,7 +120,6 @@ export function ProductCard({
     if (product.user?.name) {
       return product.user.name;
     }
-    // If no seller info is available, don't show the seller line
     return null;
   };
 
@@ -102,7 +127,7 @@ export function ProductCard({
 
   return (
     <>
-      <Card className="group overflow-hidden h-full flex flex-col bg-card ">
+      <Card className="group overflow-hidden h-full flex flex-col bg-card">
         <ProductImage product={product} onClick={() => setIsModalOpen(true)} />
 
         <CardContent className="px-4 my-0 flex-grow space-y-1">
@@ -120,7 +145,7 @@ export function ProductCard({
 
           <div className="flex items-center justify-between">
             <span className="text-2xl font-bold text-primary">
-              ${Number(product.price).toFixed(2)}
+              {formatPrice(product.price)}
             </span>
           </div>
 
@@ -132,15 +157,25 @@ export function ProductCard({
         </CardContent>
 
         <CardFooter className="px-4 sm:pt-0 sm:mt-0 sm:gap-3 flex flex-col gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full"
-            onClick={() => setIsModalOpen(true)}
-          >
-            <Eye className="h-4 w-4 mr-2" />
-            View
-          </Button>
+          <div className="flex gap-2 w-full">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={() => setIsModalOpen(true)}
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              View
+            </Button>
+
+            {showDetailsLink && (
+              <Button variant="outline" size="sm" asChild>
+                <Link href={`/products/${product.id}`}>
+                  <ExternalLink className="h-4 w-4" />
+                </Link>
+              </Button>
+            )}
+          </div>
 
           {isOwnProduct ? (
             <div className="flex gap-2 w-full">

@@ -22,6 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import { BarChart3, Users, Shield, Key, UserCheck, Mail } from "lucide-react";
 import { LoadingSkeleton } from "@/components/loading-skeleton";
 import { AdminDashboardData } from "@/lib/interfaces";
+import { getRoleColor, getRoleIcon } from "@/lib/constants";
 
 export default function AdminDashboard() {
   const [dashboardData, setDashboardData] = useState<AdminDashboardData | null>(
@@ -33,7 +34,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const response = await ApiService.getDashboard();
+        const response = await ApiService.getAdminDashboard();
         setDashboardData(response as AdminDashboardData);
       } catch (error) {
         toast({
@@ -78,32 +79,6 @@ export default function AdminDashboard() {
       users_by_role: [],
     },
     recent_users: [],
-  };
-
-  const getRoleColor = (roleName: string) => {
-    switch (roleName.toLowerCase()) {
-      case "admin":
-        return "text-red-600";
-      case "seller":
-        return "text-blue-600";
-      case "buyer":
-        return "text-green-600";
-      default:
-        return "text-gray-600";
-    }
-  };
-
-  const getRoleIcon = (roleName: string) => {
-    switch (roleName.toLowerCase()) {
-      case "admin":
-        return Shield;
-      case "seller":
-        return BarChart3;
-      case "buyer":
-        return UserCheck;
-      default:
-        return Users;
-    }
   };
 
   return (

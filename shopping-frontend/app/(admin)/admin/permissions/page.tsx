@@ -20,16 +20,31 @@ import {
 import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSkeleton } from "@/components/loading-skeleton";
-import { Key, Shield, Lock } from "lucide-react";
-import { Permission } from "@/lib/interfaces";
+import { Key, Shield, Lock, UserCog, Loader2 } from "lucide-react";
+import type { Permission, Role } from "@/lib/interfaces";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 export default function PermissionsPage() {
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [selectedPermission, setSelectedPermission] =
+    useState<Permission | null>(null);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [selectedRoleIds, setSelectedRoleIds] = useState<number[]>([]);
+  const [isAssigning, setIsAssigning] = useState(false);
 
   const fetchPermissions = async () => {
-    setIsLoading(true);
     try {
       const data = await ApiService.getPermissions();
       setPermissions(data || []);
@@ -40,13 +55,25 @@ export default function PermissionsPage() {
           error instanceof Error ? error.message : "Failed to load permissions",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
+    }
+  };
+
+  const fetchRoles = async () => {
+    try {
+      const data = await ApiService.getRoles();
+      setRoles(data || []);
+    } catch (error) {
+      console.error("Failed to load roles:", error);
     }
   };
 
   useEffect(() => {
-    fetchPermissions();
+    const loadData = async () => {
+      setIsLoading(true);
+      await Promise.all([fetchPermissions(), fetchRoles()]);
+      setIsLoading(false);
+    };
+    loadData();
   }, []);
 
   const getPermissionCategory = (permissionName: string) => {
@@ -69,6 +96,53 @@ export default function PermissionsPage() {
       return { category: "Create Operations", color: "default" as const };
     }
     return { category: "General", color: "outline" as const };
+  };
+
+  const getRoleColor = (roleName: string) => {
+    if (roleName.toLowerCase() === "admin") {
+      return "destructive" as const;
+    }
+    if (roleName.toLowerCase() === "moderator") {
+      return "secondary" as const;
+    }
+    return "default" as const;
+  };
+
+  const handleAssignPermission = (permission: Permission) => {
+    setSelectedPermission(permission);
+    setSelectedRoleIds([]);
+    setIsAssignModalOpen(true);
+  };
+
+  const handleAssignToRoles = async () => {
+    if (!selectedPermission || selectedRoleIds.length === 0) return;
+
+    setIsAssigning(true);
+    try {
+      for (const roleId of selectedRoleIds) {
+        await ApiService.assignPermissionToRole({
+          role_id: roleId,
+          permission_ids: [selectedPermission.id],
+        });
+      }
+      toast({
+        title: "Success",
+        description: "Permission assigned to roles successfully",
+      });
+      setIsAssignModalOpen(false);
+      await fetchPermissions();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to assign permission",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAssigning(false);
+    }
   };
 
   if (isLoading) {
@@ -164,6 +238,7 @@ export default function PermissionsPage() {
                   <TableHead>Category</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead>ID</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -207,6 +282,16 @@ export default function PermissionsPage() {
                       <TableCell>
                         <Badge variant="outline">{permission.id}</Badge>
                       </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleAssignPermission(permission)}
+                        >
+                          <UserCog className="h-4 w-4 mr-1" />
+                          Assign
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   );
                 })}
@@ -243,6 +328,67 @@ export default function PermissionsPage() {
           )
         )}
       </div>
+
+      {/* Permission Assignment Dialog */}
+      <Dialog open={isAssignModalOpen} onOpenChange={setIsAssignModalOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Assign Permission to Roles</DialogTitle>
+            <DialogDescription>
+              Assign "{selectedPermission?.name}" to selected roles
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label>Select Roles</Label>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {roles.map((role) => (
+                  <div key={role.id} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id={`role-${role.id}`}
+                      checked={selectedRoleIds.includes(role.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedRoleIds([...selectedRoleIds, role.id]);
+                        } else {
+                          setSelectedRoleIds(
+                            selectedRoleIds.filter((id) => id !== role.id)
+                          );
+                        }
+                      }}
+                      className="rounded border-gray-300"
+                    />
+                    <label
+                      htmlFor={`role-${role.id}`}
+                      className="text-sm font-medium"
+                    >
+                      <Badge variant={getRoleColor(role.name)}>
+                        {role.name}
+                      </Badge>
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={handleAssignToRoles}
+              disabled={isAssigning || selectedRoleIds.length === 0}
+            >
+              {isAssigning ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Assigning...
+                </>
+              ) : (
+                "Assign Permission"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -122,7 +122,7 @@ export default function BuyerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background max-w-6xl mx-auto">
       <BuyerHeader onCartUpdate={handleCartUpdate} onSearch={handleSearch} />
       <main className="container py-8 px-4 max-w-4xl mx-auto">
         {/* Hero Section */}

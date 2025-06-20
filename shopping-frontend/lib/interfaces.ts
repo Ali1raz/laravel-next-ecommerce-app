@@ -15,44 +15,32 @@ export interface User {
   updated_at?: string;
 }
 
-interface LoginResponse {
-  token: string;
-  user: {
-    id: number;
-    email: string;
-    name: string;
-    role?: string;
-    roles?: Array<{
-      id: number;
-      name: string;
-      permissions?: Array<{
-        id: number;
-        name: string;
-      }>;
-    }>;
-  };
-}
-
-interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
 export interface Role {
   id: number;
   name: string;
+  guard_name?: string;
   created_at?: string;
   updated_at?: string;
   permissions?: Permission[];
   pivot?: {
     role_id?: number;
     user_id?: number;
+    model_type?: string;
+    model_id?: number;
   };
 }
 
 export interface Permission {
   id: number;
   name: string;
+  guard_name?: string;
+  created_at?: string;
+  updated_at?: string;
+  roles?: Role[];
+  pivot?: {
+    permission_id?: number;
+    role_id?: number;
+  };
 }
 
 export interface Product {
@@ -62,12 +50,16 @@ export interface Product {
   price: number | string;
   quantity: number;
   seller_id?: number;
+  image?: string;
   created_at?: string;
   updated_at?: string;
   seller?: {
     id: number;
     name: string;
     email: string;
+    email_verified_at?: string;
+    created_at?: string;
+    updated_at?: string;
   };
   user?: {
     id: number;
@@ -159,9 +151,4 @@ export interface BuyerDashboardData {
   recent_orders: Bill[];
   favorite_products: any[];
   recommended_products: any[];
-}
-
-interface ApiError {
-  message: string;
-  errors?: Record<string, string[]>;
 }

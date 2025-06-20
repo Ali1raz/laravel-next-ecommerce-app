@@ -14,36 +14,39 @@ export interface RolePermissions {
 // Define role-based permissions
 export const ROLE_PERMISSIONS: RolePermissions = {
   admin: [
-    "view-dashboard",
-    "manage-users",
-    "manage-roles",
-    "manage-permissions",
+    "view-users",
+    "create-users",
+    "edit-users",
+    "delete-users",
+    "view-roles",
+    "change-roles",
+    "view-permissions",
+    "change-permissions",
     "view-products",
-    "add-products",
+    "create-products",
     "edit-products",
     "delete-products",
-    "view-orders",
-    "manage-orders",
-    "view-analytics",
+    "view-cart",
+    "add-to-cart",
+    "remove-from-cart",
+    "view-bills",
   ],
   seller: [
-    "view-dashboard",
     "view-products",
-    "add-products",
+    "create-products",
     "edit-products",
     "delete-products",
-    "view-orders",
-    "manage-orders",
-    "view-analytics",
+    "view-cart",
+    "add-to-cart",
+    "remove-from-cart",
+    "view-bills",
   ],
   buyer: [
-    "view-dashboard",
     "view-products",
-    "add-to-cart",
     "view-cart",
-    "checkout",
-    "view-orders",
-    "view-profile",
+    "add-to-cart",
+    "remove-from-cart",
+    "view-bills",
   ],
 };
 
@@ -156,10 +159,10 @@ export class RBACService {
     // Define API access rules
     const apiRules: Record<string, Record<string, string[]>> = {
       "/admin/products": {
-        GET: ["admin", "seller"],
-        POST: ["admin", "seller"],
-        PUT: ["admin", "seller"],
-        DELETE: ["admin", "seller"],
+        GET: ["admin"],
+        POST: ["admin"],
+        PUT: ["admin"],
+        DELETE: ["admin"],
       },
       "/admin/users": {
         GET: ["admin"],
@@ -167,21 +170,34 @@ export class RBACService {
         PUT: ["admin"],
         DELETE: ["admin"],
       },
+      "/admin/roles": {
+        GET: ["admin"],
+      },
+      "/admin/permissions": {
+        GET: ["admin"],
+        POST: ["admin"],
+      },
+      "/seller/products": {
+        GET: ["admin", "seller"],
+        POST: ["admin", "seller"],
+        PUT: ["admin", "seller"],
+        DELETE: ["admin", "seller"],
+      },
       "/products": {
         GET: ["admin", "seller", "buyer"],
       },
       "/cart": {
-        GET: ["buyer"],
-        POST: ["buyer"],
-        PUT: ["buyer"],
-        DELETE: ["buyer"],
+        GET: ["admin", "seller", "buyer"],
+        POST: ["admin", "seller", "buyer"],
+        PUT: ["admin", "seller", "buyer"],
+        DELETE: ["admin", "seller", "buyer"],
       },
       "/bills": {
-        GET: ["buyer"],
-        POST: ["buyer"],
+        GET: ["admin", "seller", "buyer"],
+        POST: ["admin", "seller", "buyer"],
       },
       "/checkout": {
-        POST: ["buyer"],
+        POST: ["admin", "seller", "buyer"],
       },
     };
 

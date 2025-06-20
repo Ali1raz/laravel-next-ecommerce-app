@@ -17,8 +17,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
-import { Product } from "@/lib/interfaces";
+import { Loader2, X } from "lucide-react";
+import type { Product } from "@/lib/interfaces";
 
 interface ProductFormModalProps {
   isOpen: boolean;
@@ -26,6 +26,7 @@ interface ProductFormModalProps {
   onSuccess: () => void;
   product?: Product | null;
   mode: "create" | "edit";
+  isAdmin?: boolean;
 }
 
 export function ProductFormModal({
@@ -34,12 +35,14 @@ export function ProductFormModal({
   onSuccess,
   product,
   mode,
+  isAdmin = false,
 }: ProductFormModalProps) {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     price: "",
     quantity: "",
+    image: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -51,6 +54,7 @@ export function ProductFormModal({
         description: product.description,
         price: product.price.toString(),
         quantity: product.quantity.toString(),
+        image: product.image || "",
       });
     } else {
       setFormData({
@@ -58,6 +62,7 @@ export function ProductFormModal({
         description: "",
         price: "",
         quantity: "",
+        image: "",
       });
     }
   }, [mode, product, isOpen]);
@@ -72,16 +77,25 @@ export function ProductFormModal({
         description: formData.description,
         price: Number.parseFloat(formData.price),
         quantity: Number.parseInt(formData.quantity),
+        ...(formData.image && { image: formData.image }),
       };
 
       if (mode === "create") {
-        await ApiService.createSellerProduct(productData);
+        if (isAdmin) {
+          await ApiService.createAdminProduct(productData);
+        } else {
+          await ApiService.createSellerProduct(productData);
+        }
         toast({
           title: "Success",
           description: "Product created successfully",
         });
       } else if (mode === "edit" && product) {
-        await ApiService.updateSellerProduct(product.id, productData);
+        if (isAdmin) {
+          await ApiService.updateAdminProduct(product.id, productData);
+        } else {
+          await ApiService.updateSellerProduct(product.id, productData);
+        }
         toast({
           title: "Success",
           description: "Product updated successfully",
@@ -106,9 +120,13 @@ export function ProductFormModal({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleImageRemove = () => {
+    setFormData((prev) => ({ ...prev, image: "" }));
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {mode === "create" ? "Add New Product" : "Edit Product"}
@@ -130,6 +148,7 @@ export function ProductFormModal({
               required
             />
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
             <Textarea
@@ -141,6 +160,42 @@ export function ProductFormModal({
               required
             />
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="image">Product Image URL</Label>
+            <div className="space-y-2">
+              <Input
+                id="image"
+                type="url"
+                value={formData.image}
+                onChange={(e) => handleChange("image", e.target.value)}
+                placeholder="https://example.com/image.jpg"
+              />
+              {formData.image && (
+                <div className="relative">
+                  <img
+                    src={formData.image || "/placeholder.svg"}
+                    alt="Product preview"
+                    className="w-full h-32 object-cover rounded-md border"
+                    onError={(e) => {
+                      e.currentTarget.src =
+                        "/placeholder.svg?height=128&width=200";
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-2 right-2"
+                    onClick={handleImageRemove}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="price">Price ($)</Label>
@@ -168,6 +223,7 @@ export function ProductFormModal({
               />
             </div>
           </div>
+
           <DialogFooter>
             <Button
               type="button"

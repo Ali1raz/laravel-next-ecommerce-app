@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -21,8 +20,10 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { ShoppingCart, Loader2, User } from "lucide-react";
+import { ShoppingCart, Loader2, User, ExternalLink } from "lucide-react";
+import Link from "next/link";
 import { Product } from "@/lib/interfaces";
+import { formatPrice } from "@/lib/utils";
 
 interface ProductModalProps {
   product: Product;
@@ -68,12 +69,6 @@ export function ProductModal({
     }
   };
 
-  const formatPrice = (price: number | string) => {
-    return typeof price === "string"
-      ? Number.parseFloat(price).toFixed(2)
-      : price.toFixed(2);
-  };
-
   const getStockStatus = () => {
     if (product.quantity <= 0)
       return { label: "Out of Stock", variant: "destructive" as const };
@@ -94,16 +89,24 @@ export function ProductModal({
     return null;
   };
 
-  const maxQuantity = Math.min(product.quantity, 10); // Limit to 10 or available stock
+  const maxQuantity = Math.min(product.quantity, 10);
   const sellerName = getSellerName();
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-2xl max-w-3xl max-h-[65vh] overflow-y-auto bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/95 p-3 sm:p-6">
         <DialogHeader className="space-y-1 sm:space-y-3">
-          <DialogTitle className="text-base sm:text-xl font-bold leading-tight pr-8 line-clamp-2">
-            {product.title}
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-base sm:text-xl font-bold leading-tight pr-8 line-clamp-2">
+              {product.title}
+            </DialogTitle>
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/products/${product.id}`}>
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Details
+              </Link>
+            </Button>
+          </div>
           {sellerName && (
             <DialogDescription className="flex items-center gap-2 text-base">
               <span>Sold by</span>
@@ -116,20 +119,32 @@ export function ProductModal({
         </DialogHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6 mt-2 sm:mt-4">
-          {/* Left Column - Image and Features */}
-          {/* Product Image */}
+          {/* Left Column - Image */}
           <div className="aspect-square relative rounded-lg overflow-hidden bg-muted">
-            <div className="absolute inset-0 bg-gradient-to-br from-gray-600 to-gray-800"></div>
-            <div className="absolute inset-0 flex items-center justify-center text-white text-sm sm:text-lg font-medium px-2 text-center">
-              {product.title}
-            </div>
+            {product.image ? (
+              <img
+                src={product.image || "/placeholder.svg"}
+                alt={product.title}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = "/placeholder.svg?height=400&width=400";
+                }}
+              />
+            ) : (
+              <>
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-600 to-gray-800"></div>
+                <div className="absolute inset-0 flex items-center justify-center text-white text-sm sm:text-lg font-medium px-2 text-center">
+                  {product.title}
+                </div>
+              </>
+            )}
           </div>
 
           {/* Right Column - Product Details */}
           <div className="space-y-3 sm:space-y-6">
             <div className="flex items-center justify-between">
               <span className="text-xl sm:text-3xl font-bold text-primary">
-                ${formatPrice(product.price)}
+                {formatPrice(product.price)}
               </span>
               <Badge
                 variant={stockStatus.variant}
@@ -197,7 +212,7 @@ export function ProductModal({
                     ) : (
                       <>
                         <ShoppingCart className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                        Add to Cart • $
+                        Add to Cart • {formatPrice(product.price)}
                         {(
                           Number.parseFloat(formatPrice(product.price)) *
                           Number.parseInt(quantity)
@@ -216,7 +231,7 @@ export function ProductModal({
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Price:</span>
                 <span className="font-medium">
-                  ${formatPrice(product.price)}
+                  {formatPrice(product.price)}
                 </span>
               </div>
               <div className="flex justify-between">

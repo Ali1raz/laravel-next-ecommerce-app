@@ -20,17 +20,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { ApiService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -40,9 +29,12 @@ import {
   Package,
   Loader2,
   ShoppingCart,
+  Eye,
 } from "lucide-react";
 import { LoadingSkeleton } from "@/components/loading-skeleton";
-import { Product } from "@/lib/interfaces";
+import type { Product } from "@/lib/interfaces";
+import { ProductFormModal } from "@/components/product-form-modal";
+import Link from "next/link";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -56,13 +48,14 @@ export default function AdminProductsPage() {
     description: "",
     price: "",
     quantity: "",
+    image: "",
   });
   const { toast } = useToast();
 
   const fetchProducts = async () => {
     setIsLoading(true);
     try {
-      const data = await ApiService.getProducts();
+      const data = await ApiService.getAdminProducts();
       setProducts(Array.isArray(data) ? data : []);
     } catch (error) {
       toast({
@@ -109,7 +102,13 @@ export default function AdminProductsPage() {
 
       setIsDialogOpen(false);
       setEditingProduct(null);
-      setFormData({ title: "", description: "", price: "", quantity: "" });
+      setFormData({
+        title: "",
+        description: "",
+        price: "",
+        quantity: "",
+        image: "",
+      });
       await fetchProducts();
     } catch (error) {
       toast({
@@ -130,6 +129,7 @@ export default function AdminProductsPage() {
       description: product.description,
       price: product.price.toString(),
       quantity: product.quantity.toString(),
+      image: product.image || "",
     });
     setIsDialogOpen(true);
   };
@@ -176,7 +176,13 @@ export default function AdminProductsPage() {
 
   const openCreateDialog = () => {
     setEditingProduct(null);
-    setFormData({ title: "", description: "", price: "", quantity: "" });
+    setFormData({
+      title: "",
+      description: "",
+      price: "",
+      quantity: "",
+      image: "",
+    });
     setIsDialogOpen(true);
   };
 
@@ -342,6 +348,11 @@ export default function AdminProductsPage() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
+                            <Button variant="outline" size="sm" asChild>
+                              <Link href={`/admin/products/${product.id}`}>
+                                <Eye className="h-4 w-4" />
+                              </Link>
+                            </Button>
                             <Button
                               variant="outline"
                               size="sm"
@@ -384,98 +395,14 @@ export default function AdminProductsPage() {
       </Card>
 
       {/* Product Form Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <form onSubmit={handleSubmit}>
-            <DialogHeader>
-              <DialogTitle>
-                {editingProduct ? "Edit Product" : "Create New Product"}
-              </DialogTitle>
-              <DialogDescription>
-                {editingProduct
-                  ? "Update the product details below."
-                  : "Enter the details for the new product."}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Product Title</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  placeholder="Enter product title"
-                  required
-                  disabled={isSubmitting}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                  placeholder="Enter product description"
-                  required
-                  disabled={isSubmitting}
-                  rows={3}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="price">Price ($)</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.price}
-                    onChange={(e) =>
-                      setFormData({ ...formData, price: e.target.value })
-                    }
-                    placeholder="0.00"
-                    required
-                    disabled={isSubmitting}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="quantity">Quantity</Label>
-                  <Input
-                    id="quantity"
-                    type="number"
-                    min="0"
-                    value={formData.quantity}
-                    onChange={(e) =>
-                      setFormData({ ...formData, quantity: e.target.value })
-                    }
-                    placeholder="0"
-                    required
-                    disabled={isSubmitting}
-                  />
-                </div>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {editingProduct ? "Updating..." : "Creating..."}
-                  </>
-                ) : editingProduct ? (
-                  "Update Product"
-                ) : (
-                  "Create Product"
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <ProductFormModal
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        onSuccess={fetchProducts}
+        product={editingProduct}
+        mode={editingProduct ? "edit" : "create"}
+        isAdmin={true}
+      />
     </div>
   );
 }

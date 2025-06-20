@@ -51,6 +51,7 @@ import {
   UserCog,
 } from "lucide-react";
 import { PaginatedResponse, Role, User } from "@/lib/interfaces";
+import { getRoleColor } from "@/lib/constants";
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -241,19 +242,6 @@ export default function UsersPage() {
       role: "buyer",
     });
     setIsDialogOpen(true);
-  };
-
-  const getRoleColor = (roleName: string) => {
-    switch (roleName.toLowerCase()) {
-      case "admin":
-        return "destructive";
-      case "seller":
-        return "default";
-      case "buyer":
-        return "secondary";
-      default:
-        return "outline";
-    }
   };
 
   if (isLoading) {

@@ -15,7 +15,7 @@ import {
 export function BuyerFooter() {
   return (
     <footer className="bg-muted/30 border-t mt-16">
-      <div className="container px-4 py-12">
+      <div className="container px-4 py-12 max-w-6xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="space-y-4">
